@@ -13,7 +13,8 @@ Get-CimInstance win32_operatingsystem | Select-Object BootDevice,Manufacturer,Na
 
 # $t = @{Expression={$_.Name};Label="Software"}
 
-Get-WmiObject -class win32_product |Select-Object Name | convertto-html -head $a | Out-File -Append H:\scripts\powershell\computerInfo.html
+# Get-WmiObject -class win32_product |Select-Object Name | convertto-html -head $a | Out-File -Append H:\scripts\powershell\computerInfo.html
+Get-WmiObject -class win32_product |Select-Object Name | convertto-html | Out-File -Append H:\scripts\powershell\computerInfo.html
 
 
 
