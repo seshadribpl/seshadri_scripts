@@ -1,0 +1,1 @@
+ awk ' {pay = pay + $2*$3};  $2 > maxpay { maxpay = $2}; $3 > maxhr {maxhr = $3; maxp = $1} END {print "total pay is: " pay " total employees is: " NR " average pay is " pay/NR " and the maximum pay is " maxpay " Max hrs is " maxhr " by " maxp}' empdata
