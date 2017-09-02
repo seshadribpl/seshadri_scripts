@@ -1,0 +1,54 @@
+Sep 02 19:50:24.093 HYPERVISOR: Release 0.2.17-amd64/Linux (tag 2017072410)
+Sep 02 19:50:24.094 HYPERVISOR: Started on IP = 127.0.0.1, TCP port = 55913.
+Sep 02 19:50:24.098 HYPERVISOR: exec_cmd: hypervisor version 
+Sep 02 19:50:24.099 HYPERVISOR: exec_cmd: hypervisor working_dir /home/seshadri/scripts/cisco/getnetworkingDotNet-1.gns3/project-files/dynamips 
+Sep 02 19:50:24.099 GENERAL: working_dir=/home/seshadri/scripts/cisco/getnetworkingDotNet-1.gns3/project-files/dynamips
+Sep 02 19:50:24.099 HYPERVISOR: exec_cmd: hypervisor working_dir /home/seshadri/scripts/cisco/getnetworkingDotNet-1.gns3/project-files/dynamips/7fe8289a-b7c2-4445-a645-7fab8d2c9e73 
+Sep 02 19:50:24.099 GENERAL: working_dir=/home/seshadri/scripts/cisco/getnetworkingDotNet-1.gns3/project-files/dynamips/7fe8289a-b7c2-4445-a645-7fab8d2c9e73
+Sep 02 19:50:24.099 HYPERVISOR: exec_cmd: vm create R1 2 c3725 
+Sep 02 19:50:24.100 VM: VM R1 created.
+Sep 02 19:50:24.100 HYPERVISOR: exec_cmd: vm set_con_tcp_port R1 5001 
+Sep 02 19:50:24.101 HYPERVISOR: exec_cmd: c3725 get_mac_addr R1 
+Sep 02 19:50:24.101 HYPERVISOR: exec_cmd: vm set_nvram R1 256 
+Sep 02 19:50:24.102 HYPERVISOR: exec_cmd: vm set_disk0 R1 0 
+Sep 02 19:50:24.102 HYPERVISOR: exec_cmd: vm get_status R1 
+Sep 02 19:50:24.103 HYPERVISOR: exec_cmd: vm slot_add_binding R1 2 0 NM-4T 
+Sep 02 19:50:24.104 HYPERVISOR: exec_cmd: vm get_status R1 
+Sep 02 19:50:24.104 HYPERVISOR: exec_cmd: vm slot_add_binding R1 1 0 NM-1FE-TX 
+Sep 02 19:50:24.105 HYPERVISOR: exec_cmd: c3725 set_mac_addr R1 c202.3cec.0000 
+Sep 02 19:50:24.106 HYPERVISOR: exec_cmd: vm slot_add_binding R1 0 32 WIC-1T 
+Sep 02 19:50:24.106 HYPERVISOR: exec_cmd: vm get_status R1 
+Sep 02 19:50:24.107 HYPERVISOR: exec_cmd: vm set_idle_pc R1 0x60bf8288 
+Sep 02 19:50:24.107 HYPERVISOR: exec_cmd: vm slot_add_binding R1 0 16 WIC-1T 
+Sep 02 19:50:24.109 HYPERVISOR: exec_cmd: vm set_ios R1 /home/seshadri/GNS3/images/IOS/c3725-adventerprisek9-mz124-15.image 
+Sep 02 19:50:24.110 HYPERVISOR: exec_cmd: vm set_config R1 configs/i2_startup-config.cfg 
+Sep 02 19:50:24.471 HYPERVISOR: exec_cmd: nio create_udp udp-9b789d2a-cf08-427f-9664-64e11f3773d6 10002 127.0.0.1 10003 
+Sep 02 19:50:24.473 HYPERVISOR: exec_cmd: vm slot_add_nio_binding R1 0 0 udp-9b789d2a-cf08-427f-9664-64e11f3773d6 
+Sep 02 19:50:24.473 HYPERVISOR: exec_cmd: vm get_status R1 
+Sep 02 19:50:24.701 HYPERVISOR: exec_cmd: nio create_udp udp-caa5d4e1-2207-44db-83a8-f30b71fad775 10008 127.0.0.1 10009 
+Sep 02 19:50:24.702 HYPERVISOR: exec_cmd: vm slot_add_nio_binding R1 0 1 udp-caa5d4e1-2207-44db-83a8-f30b71fad775 
+Sep 02 19:50:24.702 HYPERVISOR: exec_cmd: vm get_status R1 
+Sep 02 19:50:38.967 HYPERVISOR: exec_cmd: vm set_ghost_status R1 2 
+Sep 02 19:50:38.973 HYPERVISOR: exec_cmd: vm set_ghost_file R1 /home/seshadri/scripts/cisco/getnetworkingDotNet-1.gns3/project-files/dynamips/c3725-adventerprisek9-mz124-15.image-128.ghost 
+Sep 02 19:50:38.981 HYPERVISOR: exec_cmd: vm get_status R1 
+Sep 02 19:50:38.993 HYPERVISOR: exec_cmd: vm start R1 
+Sep 02 19:51:09.237 HYPERVISOR: exec_cmd: vm extract_config R1 
+Sep 02 19:51:09.253 HYPERVISOR: exec_cmd: vm extract_config R1 
+Sep 02 20:12:03.605 HYPERVISOR: exec_cmd: vm set_ios R1 /home/seshadri/GNS3/images/IOS/c3725-adventerprisek9-mz124-15.image 
+Sep 02 20:14:35.287 HYPERVISOR: exec_cmd: nio bind_filter udp-9b789d2a-cf08-427f-9664-64e11f3773d6 2 capture 
+Sep 02 20:14:35.288 HYPERVISOR: exec_cmd: nio setup_filter udp-9b789d2a-cf08-427f-9664-64e11f3773d6 2 en10mb /home/seshadri/scripts/cisco/getnetworkingDotNet-1.gns3/tmp/captures/R1_FastEthernet00_to_BORDER_1_FastEthernet01.pcap 
+Sep 02 20:28:49.093 HYPERVISOR: exec_cmd: nio unbind_filter udp-9b789d2a-cf08-427f-9664-64e11f3773d6 2 
+Sep 02 20:28:56.910 HYPERVISOR: exec_cmd: nio bind_filter udp-9b789d2a-cf08-427f-9664-64e11f3773d6 2 capture 
+Sep 02 20:28:56.911 HYPERVISOR: exec_cmd: nio setup_filter udp-9b789d2a-cf08-427f-9664-64e11f3773d6 2 en10mb /home/seshadri/scripts/cisco/getnetworkingDotNet-1.gns3/tmp/captures/R1_FastEthernet00_to_BORDER_1_FastEthernet01.pcap 
+Sep 02 20:39:57.626 HYPERVISOR: exec_cmd: vm get_status R1 
+Sep 02 20:39:57.631 HYPERVISOR: exec_cmd: vm stop R1 
+Sep 02 20:39:57.723 VM: VM R1 shutdown.
+Sep 02 20:39:57.725 HYPERVISOR: exec_cmd: vm extract_config R1 
+Sep 02 20:39:57.744 HYPERVISOR: exec_cmd: nio unbind_filter udp-9b789d2a-cf08-427f-9664-64e11f3773d6 2 
+Sep 02 20:39:58.143 HYPERVISOR: exec_cmd: vm get_status R1 
+Sep 02 20:39:58.147 HYPERVISOR: exec_cmd: vm extract_config R1 
+Sep 02 20:39:58.151 HYPERVISOR: exec_cmd: vm delete R1 
+Sep 02 20:39:58.151 VM: VM R1 destroyed.
+Sep 02 20:39:58.154 HYPERVISOR: exec_cmd: hypervisor stop 
+Sep 02 20:39:58.578 HYPERVISOR: Stopped.
+Sep 02 20:39:58.578 GENERAL: reset done.
