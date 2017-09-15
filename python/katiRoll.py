@@ -1,3 +1,14 @@
+# Demonstration of classmethod
+# Examples on how to call the methods in the class or instantiate it:
+'''
+Katiroll.paneer()
+Katiroll.chana()
+newItem = Katiroll('corn', 22)
+Katiroll(['salt', 'pepper', 'chillies'], 25)
+'''
+
+
+
 class Katiroll:
 	def __init__(self,ingredients,price):
 		self.ingredients = ingredients
@@ -20,8 +31,5 @@ class Katiroll:
 		print '---------------------'
 
 
-# Katiroll(['salt', 'pepper', 'chillies'], 25)
 
-Katiroll.paneer()
-Katiroll.chana()
-newItem = Katiroll('corn', 22)
+
