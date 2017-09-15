@@ -1,0 +1,51 @@
+Sep 03 15:42:58.340 HYPERVISOR: Release 0.2.17-amd64/Linux (tag 2017072410)
+Sep 03 15:42:58.340 HYPERVISOR: Started on IP = 127.0.0.1, TCP port = 54117.
+Sep 03 15:42:58.354 HYPERVISOR: exec_cmd: hypervisor version 
+Sep 03 15:42:58.355 HYPERVISOR: exec_cmd: hypervisor working_dir /home/seshadri/scripts/cisco/ospf1/project-files/dynamips 
+Sep 03 15:42:58.355 GENERAL: working_dir=/home/seshadri/scripts/cisco/ospf1/project-files/dynamips
+Sep 03 15:42:58.356 HYPERVISOR: exec_cmd: hypervisor working_dir /home/seshadri/scripts/cisco/ospf1/project-files/dynamips/5ffc62c3-b2b8-4eec-9269-1ac1974d8666 
+Sep 03 15:42:58.356 GENERAL: working_dir=/home/seshadri/scripts/cisco/ospf1/project-files/dynamips/5ffc62c3-b2b8-4eec-9269-1ac1974d8666
+Sep 03 15:42:58.357 HYPERVISOR: exec_cmd: vm create R2 2 c3725 
+Sep 03 15:42:58.358 VM: VM R2 created.
+Sep 03 15:42:58.359 HYPERVISOR: exec_cmd: vm set_con_tcp_port R2 5001 
+Sep 03 15:42:58.360 HYPERVISOR: exec_cmd: c3725 get_mac_addr R2 
+Sep 03 15:42:58.362 HYPERVISOR: exec_cmd: vm slot_add_binding R2 0 16 WIC-1T 
+Sep 03 15:42:58.365 HYPERVISOR: exec_cmd: vm set_ios R2 /home/seshadri/GNS3/images/IOS/c3725-adventerprisek9-mz124-15.image 
+Sep 03 15:42:58.366 HYPERVISOR: exec_cmd: vm get_status R2 
+Sep 03 15:42:58.367 HYPERVISOR: exec_cmd: vm slot_add_binding R2 2 0 NM-4T 
+Sep 03 15:42:58.369 HYPERVISOR: exec_cmd: vm set_nvram R2 256 
+Sep 03 15:42:58.370 HYPERVISOR: exec_cmd: vm slot_add_binding R2 0 32 WIC-1T 
+Sep 03 15:42:58.371 HYPERVISOR: exec_cmd: vm get_status R2 
+Sep 03 15:42:58.373 HYPERVISOR: exec_cmd: vm set_idle_pc R2 0x60bf8288 
+Sep 03 15:42:58.374 HYPERVISOR: exec_cmd: vm get_status R2 
+Sep 03 15:42:58.375 HYPERVISOR: exec_cmd: vm slot_add_binding R2 1 0 NM-1FE-TX 
+Sep 03 15:42:58.376 HYPERVISOR: exec_cmd: c3725 set_mac_addr R2 c202.72b0.0000 
+Sep 03 15:42:58.377 HYPERVISOR: exec_cmd: vm set_disk0 R2 0 
+Sep 03 15:42:58.379 HYPERVISOR: exec_cmd: vm set_config R2 configs/i2_startup-config.cfg 
+Sep 03 15:43:18.240 HYPERVISOR: exec_cmd: vm set_ghost_status R2 2 
+Sep 03 15:43:18.241 HYPERVISOR: exec_cmd: vm set_ghost_file R2 /home/seshadri/scripts/cisco/ospf1/project-files/dynamips/c3725-adventerprisek9-mz124-15.image-128.ghost 
+Sep 03 15:43:18.242 HYPERVISOR: exec_cmd: vm get_status R2 
+Sep 03 15:43:18.244 HYPERVISOR: exec_cmd: vm start R2 
+Sep 03 15:43:48.466 HYPERVISOR: exec_cmd: vm extract_config R2 
+Sep 03 15:43:48.484 HYPERVISOR: exec_cmd: vm extract_config R2 
+Sep 03 15:44:43.321 HYPERVISOR: exec_cmd: nio create_udp udp-e0524073-b2af-4412-89a1-6d011514e145 10001 127.0.0.1 10000 
+Sep 03 15:44:43.322 HYPERVISOR: exec_cmd: vm slot_add_nio_binding R2 0 0 udp-e0524073-b2af-4412-89a1-6d011514e145 
+Sep 03 15:44:43.323 HYPERVISOR: exec_cmd: vm get_status R2 
+Sep 03 15:44:43.323 HYPERVISOR: exec_cmd: vm slot_enable_nio R2 0 0 
+Sep 03 15:45:22.687 HYPERVISOR: exec_cmd: nio create_udp udp-7bea0ce6-1532-4708-93a0-da2dd46cbf5d 10002 127.0.0.1 10003 
+Sep 03 15:45:22.689 HYPERVISOR: exec_cmd: vm slot_add_nio_binding R2 0 1 udp-7bea0ce6-1532-4708-93a0-da2dd46cbf5d 
+Sep 03 15:45:22.689 HYPERVISOR: exec_cmd: vm get_status R2 
+Sep 03 15:45:22.690 HYPERVISOR: exec_cmd: vm slot_enable_nio R2 0 1 
+Sep 03 15:58:48.552 HYPERVISOR: exec_cmd: vm extract_config R2 
+Sep 03 15:58:48.558 HYPERVISOR: exec_cmd: vm extract_config R2 
+Sep 03 19:48:46.409 HYPERVISOR: exec_cmd: vm get_status R2 
+Sep 03 19:48:46.412 HYPERVISOR: exec_cmd: vm stop R2 
+Sep 03 19:48:46.513 VM: VM R2 shutdown.
+Sep 03 19:48:46.517 HYPERVISOR: exec_cmd: vm extract_config R2 
+Sep 03 19:48:46.546 HYPERVISOR: exec_cmd: vm get_status R2 
+Sep 03 19:48:46.548 HYPERVISOR: exec_cmd: vm extract_config R2 
+Sep 03 19:48:46.551 HYPERVISOR: exec_cmd: vm delete R2 
+Sep 03 19:48:46.551 VM: VM R2 destroyed.
+Sep 03 19:48:46.553 HYPERVISOR: exec_cmd: hypervisor stop 
+Sep 03 19:48:46.819 HYPERVISOR: Stopped.
+Sep 03 19:48:46.819 GENERAL: reset done.

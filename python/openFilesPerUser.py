@@ -45,7 +45,7 @@ print 'The max number of threads per user is: {}\n'.format(resource.getrlimit(re
 
 # Get the list of processes (PIDs) associated with each user
 # As a test case, we will hard-code a user, me :)
-userName = 'kothand'
+userName = 'seshadri'
 
 # print psutil.pids()
 
@@ -68,7 +68,7 @@ class Proc:
 	def __init__(self, user):
 		self.user = user
 		# print 'Getting the PIDS of user: {}'.format(self.user)
-		psCmd = "ps --no-header -U kothand -u kothand u |awk '{print $2}'"
+		psCmd = "ps --no-header -U seshadri -u seshadri u |awk '{print $2}'"
 		listOfPIDs = subprocess.check_output(psCmd, shell=True).split('\n')
 		print 'Here are the PIDs: ' 
 		print listOfPIDs
@@ -77,8 +77,9 @@ class Proc:
 		# for i in 9988:
 			if len(i) > 0:
 				# print 'The current PID is {}'.format(i)
-				files1 = len(glob.glob('/proc/, %s, %i, /fd/*'))
-				print files1
+				# files1 = len(glob.glob('/proc/, %s, %i, /fd/*'))
+				# print files1
+				print len(glob.glob('/proc/' + i + '/fd/*'))
 
 
 
@@ -88,7 +89,7 @@ class Proc:
 
 
 
-user1 = Proc('kothand')
+user1 = Proc('seshadri')
 
 
 

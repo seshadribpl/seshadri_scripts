@@ -1,0 +1,44 @@
+Sep 03 19:49:20.840 HYPERVISOR: Release 0.2.17-amd64/Linux (tag 2017072410)
+Sep 03 19:49:20.840 HYPERVISOR: Started on IP = 127.0.0.1, TCP port = 58219.
+Sep 03 19:49:20.855 HYPERVISOR: exec_cmd: hypervisor version 
+Sep 03 19:49:20.855 HYPERVISOR: exec_cmd: hypervisor working_dir /home/seshadri/scripts/cisco/ospf1/project-files/dynamips 
+Sep 03 19:49:20.855 GENERAL: working_dir=/home/seshadri/scripts/cisco/ospf1/project-files/dynamips
+Sep 03 19:49:20.856 HYPERVISOR: exec_cmd: hypervisor working_dir /home/seshadri/scripts/cisco/ospf1/project-files/dynamips/fe375ca6-3045-433d-8b90-ed7347c6d74f 
+Sep 03 19:49:20.856 GENERAL: working_dir=/home/seshadri/scripts/cisco/ospf1/project-files/dynamips/fe375ca6-3045-433d-8b90-ed7347c6d74f
+Sep 03 19:49:20.856 HYPERVISOR: exec_cmd: vm create R3 3 c3725 
+Sep 03 19:49:20.856 VM: VM R3 created.
+Sep 03 19:49:20.857 HYPERVISOR: exec_cmd: vm set_con_tcp_port R3 5002 
+Sep 03 19:49:20.857 HYPERVISOR: exec_cmd: c3725 get_mac_addr R3 
+Sep 03 19:49:20.858 HYPERVISOR: exec_cmd: vm get_status R3 
+Sep 03 19:49:20.858 HYPERVISOR: exec_cmd: vm set_idle_pc R3 0x60bf8288 
+Sep 03 19:49:20.859 HYPERVISOR: exec_cmd: vm set_disk0 R3 0 
+Sep 03 19:49:20.859 HYPERVISOR: exec_cmd: vm slot_add_binding R3 0 16 WIC-1T 
+Sep 03 19:49:20.860 HYPERVISOR: exec_cmd: vm set_ios R3 /home/seshadri/GNS3/images/IOS/c3725-adventerprisek9-mz124-15.image 
+Sep 03 19:49:20.861 HYPERVISOR: exec_cmd: c3725 set_mac_addr R3 c203.72bf.0000 
+Sep 03 19:49:20.861 HYPERVISOR: exec_cmd: vm slot_add_binding R3 0 32 WIC-1T 
+Sep 03 19:49:20.862 HYPERVISOR: exec_cmd: vm get_status R3 
+Sep 03 19:49:20.862 HYPERVISOR: exec_cmd: vm slot_add_binding R3 2 0 NM-4T 
+Sep 03 19:49:20.863 HYPERVISOR: exec_cmd: vm set_nvram R3 256 
+Sep 03 19:49:20.864 HYPERVISOR: exec_cmd: vm get_status R3 
+Sep 03 19:49:20.865 HYPERVISOR: exec_cmd: vm slot_add_binding R3 1 0 NM-1FE-TX 
+Sep 03 19:49:20.866 HYPERVISOR: exec_cmd: vm set_config R3 configs/i3_startup-config.cfg 
+Sep 03 19:49:21.093 HYPERVISOR: exec_cmd: nio create_udp udp-e70072c5-7281-4a20-aebf-141bac4e8bef 10003 127.0.0.1 10002 
+Sep 03 19:49:21.094 HYPERVISOR: exec_cmd: vm slot_add_nio_binding R3 0 0 udp-e70072c5-7281-4a20-aebf-141bac4e8bef 
+Sep 03 19:49:21.095 HYPERVISOR: exec_cmd: vm get_status R3 
+Sep 03 19:49:24.034 HYPERVISOR: exec_cmd: vm set_ghost_status R3 2 
+Sep 03 19:49:24.038 HYPERVISOR: exec_cmd: vm set_ghost_file R3 /home/seshadri/scripts/cisco/ospf1/project-files/dynamips/c3725-adventerprisek9-mz124-15.image-128.ghost 
+Sep 03 19:49:24.039 HYPERVISOR: exec_cmd: vm get_status R3 
+Sep 03 19:49:24.040 HYPERVISOR: exec_cmd: vm start R3 
+Sep 03 19:49:54.289 HYPERVISOR: exec_cmd: vm extract_config R3 
+Sep 03 19:49:54.297 HYPERVISOR: exec_cmd: vm extract_config R3 
+Sep 03 19:51:29.732 HYPERVISOR: exec_cmd: vm get_status R3 
+Sep 03 19:51:29.734 HYPERVISOR: exec_cmd: vm stop R3 
+Sep 03 19:51:29.805 VM: VM R3 shutdown.
+Sep 03 19:51:29.814 HYPERVISOR: exec_cmd: vm extract_config R3 
+Sep 03 19:51:29.869 HYPERVISOR: exec_cmd: vm get_status R3 
+Sep 03 19:51:29.870 HYPERVISOR: exec_cmd: vm extract_config R3 
+Sep 03 19:51:29.872 HYPERVISOR: exec_cmd: vm delete R3 
+Sep 03 19:51:29.872 VM: VM R3 destroyed.
+Sep 03 19:51:29.875 HYPERVISOR: exec_cmd: hypervisor stop 
+Sep 03 19:51:29.969 HYPERVISOR: Stopped.
+Sep 03 19:51:29.969 GENERAL: reset done.
