@@ -35,11 +35,13 @@ userList = subprocess.check_output(getUsersCmd, shell=True)
 
 # Get the max number of open file descriptors allowed on this host
 
+
 with open('/proc/sys/fs/file-max') as f:
 	maxOpenFDs = f.read
 	print 'The max number of open file descriptors allowed on this host is: {}'.format(maxOpenFDs())
 
 # Get limits of file descriptors and threads per user
+# Upon encountering this limit, fork(2) fails with the error EAGAIN.
 
 totalSystemThreads = resource.getrlimit(resource.RLIMIT_NPROC)[0]
 
