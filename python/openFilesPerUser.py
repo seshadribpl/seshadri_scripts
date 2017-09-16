@@ -67,6 +67,7 @@ class Proc:
 	- add up the number of open files and display the number against the user '''
 	def __init__(self, user):
 		self.user = user
+		total = 0
 		# print 'Getting the PIDS of user: {}'.format(self.user)
 		psCmd = "ps --no-header -U seshadri -u seshadri u |awk '{print $2}'"
 		listOfPIDs = subprocess.check_output(psCmd, shell=True).split('\n')
@@ -77,9 +78,10 @@ class Proc:
 		# for i in 9988:
 			if len(i) > 0:
 				# print 'The current PID is {}'.format(i)
-				# files1 = len(glob.glob('/proc/, %s, %i, /fd/*'))
 				# print files1
-				print len(glob.glob('/proc/' + i + '/fd/*'))
+				# print len(glob.glob('/proc/' + i + '/fd/*'))
+				total += len(glob.glob('/proc/' + i + '/fd/*'))
+		print 'The total number of threads used by user "{}" is: {}'.format(self.user, total)
 
 
 
