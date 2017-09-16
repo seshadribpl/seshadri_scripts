@@ -30,7 +30,8 @@ import glob
 
 print 'Here are the users logged in to this host:\n'
 getUsersCmd = "who |awk '{print $1}' |sort -u"
-print subprocess.check_output(getUsersCmd, shell=True)
+# print subprocess.check_output(getUsersCmd, shell=True)
+userList = subprocess.check_output(getUsersCmd, shell=True)
 
 # Get the max number of open file descriptors allowed on this host
 
@@ -40,12 +41,14 @@ with open('/proc/sys/fs/file-max') as f:
 
 # Get limits of file descriptors and threads per user
 
+totalSystemThreads = resource.getrlimit(resource.RLIMIT_NPROC)[0]
+
 print 'The max number of open file descriptors for the current process is {}\n'.format(resource.getrlimit(resource.RLIMIT_NOFILE))
 print 'The max number of threads per user is: {}\n'.format(resource.getrlimit(resource.RLIMIT_NPROC))
 
 # Get the list of processes (PIDs) associated with each user
 # As a test case, we will hard-code a user, me :)
-userName = 'seshadri'
+# userName = 'seshadri'
 
 # print psutil.pids()
 
@@ -67,7 +70,7 @@ class Proc:
 	- add up the number of open files and display the number against the user '''
 	def __init__(self, user):
 		self.user = user
-		total = 0
+		totalThreadsByUser = 0
 		# print 'Getting the PIDS of user: {}'.format(self.user)
 		psCmd = "ps --no-header -U seshadri -u seshadri u |awk '{print $2}'"
 		listOfPIDs = subprocess.check_output(psCmd, shell=True).split('\n')
@@ -80,8 +83,13 @@ class Proc:
 				# print 'The current PID is {}'.format(i)
 				# print files1
 				# print len(glob.glob('/proc/' + i + '/fd/*'))
-				total += len(glob.glob('/proc/' + i + '/fd/*'))
-		print 'The total number of threads used by user "{}" is: {}'.format(self.user, total)
+				totalThreadsByUser += len(glob.glob('/proc/' + i + '/fd/*'))
+
+		percentThreadsByUser = ( totalThreadsByUser * 100 ) / totalSystemThreads
+		print 'The total number of threads used by user "{}" is: {}'.format(self.user, totalThreadsByUser)
+		print 'The percent of threads used by user {} is:  {}'.format(self.user, percentThreadsByUser)
+		
+
 
 
 
@@ -91,8 +99,10 @@ class Proc:
 
 
 
-user1 = Proc('seshadri')
+# user1 = Proc('seshadri')
+# Proc('seshadri')
 
-
-
-
+for i in userList.splitlines():
+	print i
+	user1 = Proc(i)
+	
