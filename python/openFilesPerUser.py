@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/kothand/metrics_venv/bin/python2.7
 # This script will report the number of open files for each user logged into the system
 # Author: Seshadri Kothandaraman 14 Sep 2017
 ''' 
@@ -13,7 +13,8 @@ Rough approach
 7. create metrics for Datadog
 8. send metrics to Datadog
 
-
+The script has to be run as root as /proc/<PID>/fd is not world-readable. If run as a normal user, it will report the metrics 
+only for that user
 
 '''
 
@@ -24,6 +25,21 @@ import resource
 from re import split
 from sys import stdout
 import glob 
+import os
+import logging
+
+logging.basicConfig(level="DEBUG")
+from arcesium.metrics import metricd
+# return_value = metricd.add_gauge("kothand-jira.host.load", 0.13)
+# metricd.add_gauge("kothand-jira.host.load", 0.10)
+
+# print(return_value)
+
+# Check if the script is running as root. If not, warn and exit
+
+if os.geteuid() != 0:
+	print 'You can run the script as a normal user, but you won\'t get reports of other users. In addition, your own stats might be wrong'
+# 	exit('Run this script as root. Bailing out...\n\n')
 
 
 # Generate the list of unique users on the system
@@ -32,6 +48,7 @@ print 'Here are the users logged in to this host:\n'
 getUsersCmd = "who |awk '{print $1}' |sort -u"
 # print subprocess.check_output(getUsersCmd, shell=True)
 userList = subprocess.check_output(getUsersCmd, shell=True)
+print userList
 
 # Get the max number of open file descriptors allowed on this host
 
@@ -49,43 +66,34 @@ print 'The max number of open file descriptors for the current process is {}\n'.
 print 'The max number of threads per user is: {}\n'.format(resource.getrlimit(resource.RLIMIT_NPROC))
 
 # Get the list of processes (PIDs) associated with each user
-# As a test case, we will hard-code a user, me :)
-# userName = 'seshadri'
-
-# print psutil.pids()
-
-# for proc in psutil.process_iter():
-#     try:
-#         pinfo = proc.as_dict(attrs=['pid', 'name'])
-#     except psutil.NoSuchProcess:
-#         pass
-#     else:
-#         print(pinfo)
 
 
 # Create a class to grab all the meta-information on the output of the ps
 
 class Proc:
-	''' Get the process output. The class will: 	
+	''' 
+	Get the process output. The class will: 	
 	- get the PIDs 	
 	- get the open files associted with each PID 
-	- add up the number of open files and display the number against the user '''
+	- add up the number of open files and display the number against the user 
+
+	'''
 	def __init__(self, user):
 		self.user = user
 		totalThreadsByUser = 0
-		# print 'Getting the PIDS of user: {}'.format(self.user)
-		psCmd = "ps --no-header -U seshadri -u seshadri u |awk '{print $2}'"
+		print 'Getting the PIDS of user: {}'.format(self.user)  
+		psCmd = "ps --no-header -U " + self.user + " -u " + self.user + " u |awk '{print $2}'"
 		listOfPIDs = subprocess.check_output(psCmd, shell=True).split('\n')
 		print 'Here are the PIDs: ' 
 		print listOfPIDs
 
 		for i in listOfPIDs:
-		# for i in 9988:
+		
 			if len(i) > 0:
 				# print 'The current PID is {}'.format(i)
 				# print files1
 				# print len(glob.glob('/proc/' + i + '/fd/*'))
-				totalThreadsByUser += len(glob.glob('/proc/' + i + '/fd/*'))
+				totalThreadsByUser += len(glob.glob('/proc/' + i + '/fd/*'))  # glob is better than system/os wc -l
 
 		percentThreadsByUser = ( totalThreadsByUser * 100 ) / totalSystemThreads
 		print 'The total number of threads used by user "{}" is: {}'.format(self.user, totalThreadsByUser)
@@ -105,6 +113,6 @@ class Proc:
 # Proc('seshadri')
 
 for i in userList.splitlines():
-	print i
+	print 'Now processing user: {}\n'.format(i)
 	user1 = Proc(i)
 	
