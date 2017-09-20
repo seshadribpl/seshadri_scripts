@@ -30,10 +30,18 @@ import logging
 
 logging.basicConfig(level="DEBUG")
 from arcesium.metrics import metricd
-# return_value = metricd.add_gauge("kothand-jira.host.load", 0.13)
+
+# --- START OF TEST --- *
+
+# return_value = metricd.add_gauge("kothand-jira.host.load", 2.00)
 # metricd.add_gauge("kothand-jira.host.load", 0.10)
+# postCmd = 'logmetric kothand-jira.host.load 15 -t gauge'
+# subprocess.check_output(postCmd, shell=True)
 
 # print(return_value)
+
+
+# --- END OF TEST --- *
 
 # Check if the script is running as root. If not, warn and exit
 
@@ -98,6 +106,8 @@ class Proc:
 		percentThreadsByUser = ( totalThreadsByUser * 100 ) / totalSystemThreads
 		print 'The total number of threads used by user "{}" is: {}'.format(self.user, totalThreadsByUser)
 		print 'The percent of threads used by user {} is:  {}'.format(self.user, percentThreadsByUser)
+		postCmd = 'logmetric kothand-jira.system.totalThreadsByUser {} -t gauge'.format(totalThreadsByUser)
+		subprocess.check_output(postCmd, shell=True)
 		
 
 
@@ -116,3 +126,4 @@ for i in userList.splitlines():
 	print 'Now processing user: {}\n'.format(i)
 	user1 = Proc(i)
 	
+
