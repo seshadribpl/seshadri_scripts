@@ -69,6 +69,6 @@ class dirCheck(AgentCheck):
 
 			# these can be retrieved in a single graph statement 
 			# example: 
-			# sum:countfiles.subdir.size{instance:countfiles,subdir:dota,host:hostname.domain.tld}
+			# sum:countfiles.subdir.size{instance:countfiles,subdir:myCoolSubdir,host:hostname.domain.tld}
 
 
