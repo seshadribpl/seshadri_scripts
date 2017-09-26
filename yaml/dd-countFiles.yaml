@@ -1,0 +1,17 @@
+# The user running the dd-agent should be able to run sudo without a password.
+# Check the /etc/passwd file to ensure a line like this:
+# #          dd-agent ALL=(ALL) NOPASSWD:/usr/bin/find
+#
+# Redhat/CentOS/Amazon Linux flavours will need to add:
+#          Defaults:dd-agent !requiretty
+
+init_config:
+
+instances:
+  - directory: /tmp
+    subdirs:
+      - checkdir1
+      - checkdir2
+    tags:
+      - checkdir1
+      - checkdir2
