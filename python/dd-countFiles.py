@@ -37,7 +37,7 @@ class dirCheck(AgentCheck):
 		instance_config = {
 
 		  'directory': directory,
-		  'subdirs': queues,
+		  'subdirs': subdirs,
 		  'tags': tags,
 		}
 
@@ -65,7 +65,7 @@ class dirCheck(AgentCheck):
 					raise Exception('The dd-agent user does not have sudo access')
 
 			# generate an individually-tagged metric
-			self.gauge('countfiles.subdir.size', count, tags = tags + ['queue:%s' %queue, 'instance:%s' % os.path.basename(directory)])
+			self.gauge('countfiles.subdir.size', count, tags = tags + ['subdir:%s' %subdir, 'instance:%s' % os.path.basename(directory)])
 
 			# these can be retrieved in a single graph statement 
 			# example: 
