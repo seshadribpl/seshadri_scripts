@@ -34,9 +34,9 @@ import os
 import logging
 import time
 from datadog import statsd
-# from arcesium.metrics import metricd
 
-# Check if the program is running as root. If not, warn and exit
+
+# Check if the program is running as root. If not, warn about incomplete data
 
 if os.geteuid != 0:
 	print 'You can run the script as a normal user, but you won\'t get reports of other users. In addition, your own stats might be wrong'
@@ -45,7 +45,7 @@ if os.geteuid != 0:
 
 print 'Here are users logged in to this host: \n'
 getUsersCmd = "who |awk '{print $1}' |sort -u"
-# print subprocess.check_output(getUsersCmd, shell=True)
+
 userList = subprocess.check_output(getUsersCmd, shell=True)
 print userList
 
@@ -66,15 +66,16 @@ print 'The max number of threads per user is: {}\n'.format(resource.getrlimit(re
 
 
 def postMetric(user):
-	# user = 'kothand'
+	# user = 'kothand' # This and the following line can be uncommented for debugging
 	# print 'Getting the PIDS of user: {}'.format(self.user)  
 	print 'Getting the PIDS of user: {}'.format(user)  
-	# psCmd = "ps --no-header -U " + self.user + " -u " + self.user + " u |awk '{print $2}'"
+	
 	psCmd = "ps --no-header -U " + user + " -u " + user + " u |awk '{print $2}'"
 	listOfPIDs = subprocess.check_output(psCmd, shell=True).split('\n')
 	print 'Here are the PIDs: ' 
 	print listOfPIDs
-	# statsd.gauge
+	
+	# Initialize the threads counter for this user for this run
 
 
 	totalThreadsByUser = 0
@@ -83,16 +84,23 @@ def postMetric(user):
 	for i in listOfPIDs:
 
 		if len(i) > 0:
-			# print 'The current PID is {}'.format(i)
-			# print files1
-			# print len(glob.glob('/proc/' + i + '/fd/*'))
+			# print 'The current PID is {}'.format(i)  # Debug option
+			# print len(glob.glob('/proc/' + i + '/fd/*')) # Debug option
 			totalThreadsByUser += len(glob.glob('/proc/' + i + '/fd/*'))  # glob is better than system/os wc -l
 
+	# Calculate the threads used by the user as a percentage of the total threads available to a user
 	percentThreadsByUser = ( totalThreadsByUser * 100 ) / totalSystemThreads
 	print 'The total number of threads used by user "{}" is: {}'.format(user, totalThreadsByUser)
 	print 'The percent of threads used by user {} is:  {}'.format(user, percentThreadsByUser)
-	print 'Pushing metric {} for user {} as system.openfilesperuser.{}'.format(totalThreadsByUser,user,user)
-	statsd.gauge('system.openfilesperuser.{}'.format(user), totalThreadsByUser)
+	print 'Pushing metric {} for user {} as system.openfilesperuser.{}'.format(percentThreadsByUser,user,user)
+	# Call Datadog's statsd module to push the metric to Datadog
+	# Since we need to be alerted on a per-user basis, we include the username in the metric that is pushed out 
+	# to Datadog.
+	statsd.gauge('system.openfilesperuser.{}'.format(user), percentThreadsByUser)
+	# If it is needed to report the absolute count of threads per user, uncomment the line below
+	# statsd.gauge('system.openfilesperuser.{}'.format(user), totalThreadsByUser)
+
+# We call the function once every 10 seconds to prevent data being uploaded too rapidly. 
 
 while True:
 
