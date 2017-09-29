@@ -29,6 +29,7 @@ import subprocess
 import resource
 from re import split
 from sys import stdout
+import sys
 import glob 
 import os
 import logging
@@ -40,6 +41,12 @@ from datadog import statsd
 
 if os.geteuid != 0:
 	print 'You can run the script as a normal user, but you won\'t get reports of other users. In addition, your own stats might be wrong'
+
+# Confirm that /proc is mounted. If not, warn and exit
+
+if not os.path.ismount('/proc'):
+	print 'The filesystem /proc is not mounted'
+	sys.exit(-1)
 
 # Generate the list of unique users logged in to this system
 
