@@ -15,6 +15,10 @@ Approach:
 - Use psutil to generate the list of partitions
 - Run iostat against each of them
 - Upload individual gauges to Datadog so that parsing, troubleshooting and alerting is easy
+- The main performance indicators are await, svctm, and %util (defined below)
+await : The average time (in milliseconds) for I/O requests issued to the device to be served. This includes the time spent by the requests in queue and the time spent servicing them.
+svctm : The average service time (in milliseconds) for I/O requests that were issued to the device
+%util : Percentage of CPU time during which I/O requests were issued to the device (bandwidth utilization for the device). Device saturation occurs when this value is close to 100%.
 
 '''
 
@@ -23,17 +27,42 @@ Approach:
 # Import modules
 import psutil
 from psutil import disk_partitions
-# for partition in disk_partitions():
-# 	print (partition.mountpoint)
+import subprocess
 
-# print disk_partitions()[1]
-dps = psutil.disk_partitions()
-print len(dps)
-count = len(dps)
 
-fmt_str = "{:<30} {:<7} {:<7}"
-print(fmt_str.format("Drive", "Type", "Opts"))
-# Only show a couple of different types of devices, for brevity.
-for i in range(count):
-    dp = dps[i]
-    print(fmt_str.format(dp.device, dp.fstype, dp.opts))
+
+partitions = psutil.disk_partitions()[0][0]
+print 'The partitions on this system are: {}'.format(partitions)
+
+def getAwait(partition):
+	iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
+	await_threshold = 0.1
+	raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
+	# print raw_data
+	await = raw_data[3].split()[9]
+	svctm = raw_data[3].split()[12]
+	pct_util = raw_data[3].split()[13]
+	print 'The await on {} is {}'.format (partition, await)
+	if await > await_threshold:
+		print 'The await on {} exceeds the threshold of {}'.format(await, await_threshold)
+
+def getSvctm(partition):
+	iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
+	raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
+	# print raw_data
+	svctm = raw_data[3].split()[12]
+	print 'The svctm on {} is {}'.format (partition, svctm)
+
+def getPctutil(partition):
+	iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
+	raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
+	# print raw_data
+	pct_util = raw_data[3].split()[13]
+	print 'The pct_util on {} is {}'.format (partition, pct_util)
+
+
+
+for line in partitions.splitlines():
+	getAwait(line)
+	getSvctm(line)
+	getPctutil(line)
