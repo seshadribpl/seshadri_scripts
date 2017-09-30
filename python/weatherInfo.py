@@ -15,14 +15,14 @@ pattern = 'rain'
 
 
 if pattern in webContent.split():	# The split is needed to avoid matching patterns like migraine. Can also use re, but this is simpler
-#	print 'found {} in the weather report'.format(pattern)
-	smtpObj = smtplib.SMTP('localhost', 25)
-	smtpObj.sendmail('seshadribpl@gmail.com','seshadribpl@gmail.com', 'Subject: Rain expected today')
+	print 'found {} in the weather report'.format(pattern)
+	# smtpObj = smtplib.SMTP('localhost', 25)
+	# smtpObj.sendmail('seshadribpl@gmail.com','seshadribpl@gmail.com', 'Subject: Rain expected today')
 
 else:
-# 	print 'no {} in the weather report for today'.format(pattern)
-        smtpObj = smtplib.SMTP('localhost', 25)
-        smtpObj.sendmail('seshadribpl@gmail.com','seshadribpl@gmail.com', 'Subject: No rain expected today')
+ 	print 'no {} in the weather report for today'.format(pattern)
+        # smtpObj = smtplib.SMTP('localhost', 25)
+        # smtpObj.sendmail('seshadribpl@gmail.com','seshadribpl@gmail.com', 'Subject: No rain expected today')
 
 
 
