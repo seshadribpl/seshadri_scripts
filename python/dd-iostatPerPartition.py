@@ -12,13 +12,18 @@ IO issues right down to the partition level. We are not considering nfs as it is
 
 Approach:
 
-- Use psutil to generate the list of partitions
-- Run iostat against each of them
+- Use separate commands to build a list of local and nfs filesystems. The two have different 
+  metrics and hence, shouldn't be subjected to common baselining
+- Run performance metrics against each of them
 - Upload individual gauges to Datadog so that parsing, troubleshooting and alerting is easy
-- The main performance indicators are await, svctm, and %util (defined below)
-await : The average time (in milliseconds) for I/O requests issued to the device to be served. This includes the time spent by the requests in queue and the time spent servicing them.
-svctm : The average service time (in milliseconds) for I/O requests that were issued to the device
-%util : Percentage of CPU time during which I/O requests were issued to the device (bandwidth utilization for the device). Device saturation occurs when this value is close to 100%.
+- For local filesystems, the main performance indicators are await, svctm, and %util (defined below)
+  * await : The average time (in milliseconds) for I/O requests issued to the device to be served. This includes the time spent by the requests in queue and the time spent servicing them.
+  * svctm : The average service time (in milliseconds) for I/O requests that were issued to the device
+  * %util : Percentage of CPU time during which I/O requests were issued to the device (bandwidth utilization for the device). Device saturation occurs when this value is close to 100%.
+- For NFS, we consider the following two metrics:  
+  * avg RTT (ms) This is the duration from the time that client's kernel sends the RPC request until the time it receives the reply.
+  * avg exe (ms) This is the duration from the time that NFS client does the RPC request to its kernel until the RPC request is completed, 
+    this includes the RTT time above.
 
 '''
 
@@ -29,12 +34,25 @@ import psutil
 from psutil import disk_partitions
 import subprocess
 
+# We walk /proc/self/mountstats to get nfs mounts. The psutil output does not provide it
+# It is tempting to use/proc/mounts, but that can print stale mounts, too. 
+
+# Get the list of currently-mounted nfs filesystems and parse it 
+# Looking for the "statvers" keyword in the list gives us exactly what we need: version-agnostic nfs filesystems
+
+get_nfs_list_cmd = "awk '/statvers/ {print $5}' /proc/self/mountstats"
+nfs_list = subprocess.check_output(get_nfs_list_cmd, shell=True)
 
 
-partitions = psutil.disk_partitions()[0][0]
-print 'The partitions on this system are: {}'.format(partitions)
+# Get the list of local filesystems and parse it
+# We consider only block devices and ignore other devices like RAM filesystems
 
-def getAwait(partition):
+get_localfs_list_cmd = 'lsblk -dn -o NAME'  # -d=no slaves like sda1, -n=no-header
+localfs_list = subprocess.check_output(get_localfs_list_cmd, shell=True)
+print 'The local filesystems on this host are: {}'.format(localfs_list)
+
+
+def GetLocalfsAwait(partition):
 	iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
 	await_threshold = 0.1
 	raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
@@ -44,25 +62,62 @@ def getAwait(partition):
 	pct_util = raw_data[3].split()[13]
 	print 'The await on {} is {}'.format (partition, await)
 	if await > await_threshold:
-		print 'The await on {} exceeds the threshold of {}'.format(await, await_threshold)
+		print 'The await on {} exceeds the threshold of {}'.format(partition, await_threshold)
 
-def getSvctm(partition):
+def GetLocalfsSvctm(partition):
 	iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
 	raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
 	# print raw_data
 	svctm = raw_data[3].split()[12]
 	print 'The svctm on {} is {}'.format (partition, svctm)
 
-def getPctutil(partition):
+def GetLocalfsPctutil(partition):
 	iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
 	raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
 	# print raw_data
 	pct_util = raw_data[3].split()[13]
 	print 'The pct_util on {} is {}'.format (partition, pct_util)
 
+def GetNfsReadAvgExe(partition):
+	'''
+	Define the threshold as a float instead of an integer. 
+	Define the Latency as a float.
+	If you don't do these, the answers will be wrong
+	'''
+	ReadThreshold = 50.0
+	get_read_time_cmd = "nfsiostat " + partition + " |awk 'FNR == 7 {print $NF}'"
+	ReadLatency = float(subprocess.check_output(get_read_time_cmd, shell=True))
+	# print 'The ReadLatency is {}\n'.format(ReadLatency)
+	if ReadLatency > ReadThreshold:
+		print 'Read latency on {} exceeds the threshold of {}'.format(partition,ReadThreshold)
+	
+
+def GetNfsWriteAvgExe(partition):
+	'''
+	Define the threshold as a float instead of an integer. 
+	Define the Latency as a float.
+	If you don't do these, the answers will be wrong
+	'''
+	WriteThreshold = 100.0
+	get_write_time_cmd = "nfsiostat " + partition + " |awk 'FNR == 9 {print $NF}'"
+	WriteLatency = float(subprocess.check_output(get_write_time_cmd, shell=True))
+	# print 'The WriteLatency is {}\n'.format(WriteLatency)
+	if WriteLatency > WriteThreshold:
+		print 'Write latency on {} exceeds the threshold of {}'.format(partition,WriteThreshold)
 
 
-for line in partitions.splitlines():
-	getAwait(line)
-	getSvctm(line)
-	getPctutil(line)
+
+for localfs in localfs_list.splitlines():
+	print 'Now getting stats for {}'.format(localfs)
+	GetLocalfsAwait(localfs)
+	GetLocalfsSvctm(localfs)
+	GetLocalfsPctutil(localfs)
+	GetLocalfsAwait(localfs)
+	GetLocalfsSvctm(localfs)
+	GetLocalfsPctutil(localfs)
+
+for partition in nfs_list.splitlines():
+# for partition in '/u/saigal'.splitlines():
+	# print 'Now processing mount: {}\n'.format(partition)
+	GetNfsReadAvgExe(partition)
+	GetNfsWriteAvgExe(partition)
