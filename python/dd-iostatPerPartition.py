@@ -27,12 +27,22 @@ Approach:
 
 '''
 
-# Check whether the Datadog agent is running 
-
 # Import modules
 import psutil
 from psutil import disk_partitions
 import subprocess
+import sys
+
+# Check whether the Datadog agent is running
+# Get the PID of Datadog
+# try:
+# 	with open('/opt/datadog-agent/run/datadog-supervisord.pid', 'r') as PID:
+# 		ddPID =  int(PID.read())
+# 		if psutil.pid_exists(ddPID):
+# 			pass
+# except:
+# 	print 'The Datadog agent is not running'
+# 	sys.exit(-1)
 
 # We walk /proc/self/mountstats to get nfs mounts. The psutil output does not provide it
 # It is tempting to use/proc/mounts, but that can print stale mounts, too. 
@@ -112,10 +122,7 @@ for localfs in localfs_list.splitlines():
 	GetLocalfsAwait(localfs)
 	GetLocalfsSvctm(localfs)
 	GetLocalfsPctutil(localfs)
-	GetLocalfsAwait(localfs)
-	GetLocalfsSvctm(localfs)
-	GetLocalfsPctutil(localfs)
-
+	
 for partition in nfs_list.splitlines():
 # for partition in '/u/saigal'.splitlines():
 	# print 'Now processing mount: {}\n'.format(partition)
