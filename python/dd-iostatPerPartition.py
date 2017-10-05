@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/opt/datadog-agent/embedded/bin/python
 # This script generates reports of the io stats on all the mounted "real" partitions in the system. 
 # Then it sends the data to Datadog using its agent running on the host
 # Author: Seshadri Kothandaraman 29 Sep 2017
@@ -65,7 +65,7 @@ nfs_list = [mount.mountpoint for mount in mounts if mount.fstype == 'nfs']
 
 get_localfs_list_cmd = 'lsblk -dn -o NAME'  # -d=no slaves like sda1, -n=no-header
 localfs_list = subprocess.check_output(get_localfs_list_cmd, shell=True)
-print 'The local filesystems on this host are: {}'.format(localfs_list)
+# print 'The local filesystems on this host are: {}'.format(localfs_list)
 
 
 def GetLocalfsAwait(partition):
@@ -76,7 +76,7 @@ def GetLocalfsAwait(partition):
 	await = raw_data[3].split()[9]
 	svctm = raw_data[3].split()[12]
 	pct_util = raw_data[3].split()[13]
-	print 'The await on {} is {}'.format (partition, await)
+	# print 'The await on {} is {}'.format (partition, await)
 	# if await > await_threshold:
 	# 	print 'The await on {} exceeds the threshold of {}'.format(partition, await_threshold)
 
@@ -107,7 +107,7 @@ def GetNfsReadAvgExe(partition):
 	# if ReadLatency > ReadThreshold:
 	# 	print 'Read latency on {} exceeds the threshold of {}'.format(partition,ReadThreshold)
 	# Call Datadog's statsd module to push the metric to Datadog
-	statsd.gauge('system.iostatPerPartition.{}'.format(partition), ReadLatency)
+	statsd.gauge('system.ReadLatency.{}'.format(partition), ReadLatency)
 	
 
 def GetNfsWriteAvgExe(partition):
@@ -123,15 +123,15 @@ def GetNfsWriteAvgExe(partition):
 	# if WriteLatency > WriteThreshold:
 	# 	print 'Write latency on {} exceeds the threshold of {}'.format(partition,WriteThreshold)
 	# Call Datadog's statsd module to push the metric to Datadog
-	statsd.gauge('system.iostatPerPartition.{}'.format(partition), WriteLatency)
+	statsd.gauge('system.WriteLatency.{}'.format(partition), WriteLatency)
 
 
 
-for localfs in localfs_list.splitlines():
-	print 'Now getting stats for {}'.format(localfs)
-	GetLocalfsAwait(localfs)
-	GetLocalfsSvctm(localfs)
-	GetLocalfsPctutil(localfs)
+# for localfs in localfs_list.splitlines():
+# 	# print 'Now getting stats for {}'.format(localfs)
+# 	GetLocalfsAwait(localfs)
+# 	GetLocalfsSvctm(localfs)
+# 	GetLocalfsPctutil(localfs)
 
 # We call the function once every 10 seconds to prevent data being uploaded too rapidly. 	
 
