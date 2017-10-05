@@ -32,27 +32,33 @@ import psutil
 from psutil import disk_partitions
 import subprocess
 import sys
+import logging
+import time
+from datadog import statsd
 
 # Check whether the Datadog agent is running
 # Get the PID of Datadog
-# try:
-# 	with open('/opt/datadog-agent/run/datadog-supervisord.pid', 'r') as PID:
-# 		ddPID =  int(PID.read())
-# 		if psutil.pid_exists(ddPID):
-# 			pass
-# except:
-# 	print 'The Datadog agent is not running'
-# 	sys.exit(-1)
+try:
+	with open('/opt/datadog-agent/run/datadog-supervisord.pid', 'r') as PID:
+		ddPID =  int(PID.read())
+		if psutil.pid_exists(ddPID):
+			pass
+except:
+	print 'The Datadog agent is not running'
+	sys.exit(-1)
 
-# We walk /proc/self/mountstats to get nfs mounts. The psutil output does not provide it
+# We walk /proc/self/mountstats to get nfs mounts. The psutil method is given below
 # It is tempting to use/proc/mounts, but that can print stale mounts, too. 
 
 # Get the list of currently-mounted nfs filesystems and parse it 
 # Looking for the "statvers" keyword in the list gives us exactly what we need: version-agnostic nfs filesystems
 
-get_nfs_list_cmd = "awk '/statvers/ {print $5}' /proc/self/mountstats"
-nfs_list = subprocess.check_output(get_nfs_list_cmd, shell=True)
+# get_nfs_list_cmd = "awk '/statvers/ {print $5}' /proc/self/mountstats"
+# nfs_list = subprocess.check_output(get_nfs_list_cmd, shell=True)
 
+# Using psutil
+mounts = psutil.disk_partitions(all=True)
+nfs_list = [mount.mountpoint for mount in mounts if mount.fstype == 'nfs']
 
 # Get the list of local filesystems and parse it
 # We consider only block devices and ignore other devices like RAM filesystems
@@ -71,22 +77,22 @@ def GetLocalfsAwait(partition):
 	svctm = raw_data[3].split()[12]
 	pct_util = raw_data[3].split()[13]
 	print 'The await on {} is {}'.format (partition, await)
-	if await > await_threshold:
-		print 'The await on {} exceeds the threshold of {}'.format(partition, await_threshold)
+	# if await > await_threshold:
+	# 	print 'The await on {} exceeds the threshold of {}'.format(partition, await_threshold)
 
 def GetLocalfsSvctm(partition):
 	iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
 	raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
 	# print raw_data
 	svctm = raw_data[3].split()[12]
-	print 'The svctm on {} is {}'.format (partition, svctm)
+	# print 'The svctm on {} is {}'.format (partition, svctm)
 
 def GetLocalfsPctutil(partition):
 	iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
 	raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
 	# print raw_data
 	pct_util = raw_data[3].split()[13]
-	print 'The pct_util on {} is {}'.format (partition, pct_util)
+	# print 'The pct_util on {} is {}'.format (partition, pct_util)
 
 def GetNfsReadAvgExe(partition):
 	'''
@@ -98,22 +104,26 @@ def GetNfsReadAvgExe(partition):
 	get_read_time_cmd = "nfsiostat " + partition + " |awk 'FNR == 7 {print $NF}'"
 	ReadLatency = float(subprocess.check_output(get_read_time_cmd, shell=True))
 	# print 'The ReadLatency is {}\n'.format(ReadLatency)
-	if ReadLatency > ReadThreshold:
-		print 'Read latency on {} exceeds the threshold of {}'.format(partition,ReadThreshold)
+	# if ReadLatency > ReadThreshold:
+	# 	print 'Read latency on {} exceeds the threshold of {}'.format(partition,ReadThreshold)
+	# Call Datadog's statsd module to push the metric to Datadog
+	statsd.gauge('system.iostatPerPartition.{}'.format(partition), ReadLatency)
 	
 
 def GetNfsWriteAvgExe(partition):
 	'''
 	Define the threshold as a float instead of an integer. 
 	Define the Latency as a float.
-	If you don't do these, the answers will be wrong
+	If you don't do these, the values will be incorrect
 	'''
 	WriteThreshold = 100.0
 	get_write_time_cmd = "nfsiostat " + partition + " |awk 'FNR == 9 {print $NF}'"
 	WriteLatency = float(subprocess.check_output(get_write_time_cmd, shell=True))
 	# print 'The WriteLatency is {}\n'.format(WriteLatency)
-	if WriteLatency > WriteThreshold:
-		print 'Write latency on {} exceeds the threshold of {}'.format(partition,WriteThreshold)
+	# if WriteLatency > WriteThreshold:
+	# 	print 'Write latency on {} exceeds the threshold of {}'.format(partition,WriteThreshold)
+	# Call Datadog's statsd module to push the metric to Datadog
+	statsd.gauge('system.iostatPerPartition.{}'.format(partition), WriteLatency)
 
 
 
@@ -122,9 +132,15 @@ for localfs in localfs_list.splitlines():
 	GetLocalfsAwait(localfs)
 	GetLocalfsSvctm(localfs)
 	GetLocalfsPctutil(localfs)
-	
-for partition in nfs_list.splitlines():
-# for partition in '/u/saigal'.splitlines():
-	# print 'Now processing mount: {}\n'.format(partition)
-	GetNfsReadAvgExe(partition)
-	GetNfsWriteAvgExe(partition)
+
+# We call the function once every 10 seconds to prevent data being uploaded too rapidly. 	
+
+while True:
+
+	# for partition in nfs_list.splitlines():
+	for partition in nfs_list:
+	# for partition in '<insert nfs mount here>'.splitlines():   # this is for debugging
+		# print 'Now processing mount: {}\n'.format(partition)   # this is for debugging
+		GetNfsReadAvgExe(partition)
+		GetNfsWriteAvgExe(partition)
+		time.sleep(10)
