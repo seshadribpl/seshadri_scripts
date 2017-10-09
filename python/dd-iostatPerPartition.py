@@ -82,70 +82,76 @@ LOCALFS_LIST = subprocess.check_output(GET_LOCALFS_LIST_CMD, shell=True)
 # print 'The local filesystems on this host are: {}'.format(LOCALFS_LIST)
 
 
-def get_localfs_await(partition):
-    iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
+def get_localfs_await(part_for_await):
+    ''' Calculates the await on the local partition '''
+    iostat_cmd = 'iostat -xd ' + part_for_await + ' 1 1'
     await_threshold = 0.1
     raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
     # print raw_data
     await = raw_data[3].split()[9]
     svctm = raw_data[3].split()[12]
     pct_util = raw_data[3].split()[13]
-    # print 'The await on {} is {}'.format (partition, await)
+    # print 'The await on {} is {}'.format (part_for_await, await)
     # if await > await_threshold:
-    #   print 'The await on {} exceeds the threshold of {}'.format(partition, await_threshold)
+    #   print 'The await on {} exceeds the threshold of {}'.format(part_for_await, await_threshold)
 
-def GetLocalfsSvctm(partition):
-    iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
+def get_localfs_svctm(part_for_svctm):
+    ''' Calculates the service time for the local partition '''
+    iostat_cmd = 'iostat -xd ' + part_for_svctm + ' 1 1'
     raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
     # print raw_data
     svctm = raw_data[3].split()[12]
-    # print 'The svctm on {} is {}'.format (partition, svctm)
+    # print 'The svctm on {} is {}'.format (part_for_svctm, svctm)
 
-def GetLocalfsPctutil(partition):
-    iostat_cmd = 'iostat -xd ' + partition + ' 1 1'
+def get_localfs_pctutil(part_for_pctutil):
+    ''' Calculates the % utilization of the local fs '''
+    iostat_cmd = 'iostat -xd ' + part_for_pctutil + ' 1 1'
     raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
     # print raw_data
     pct_util = raw_data[3].split()[13]
-    # print 'The pct_util on {} is {}'.format (partition, pct_util)
+    # print 'The pct_util on {} is {}'.format (part_for_pctutil, pct_util)
 
-def GetNfsReadAvgExe(partition):
+def get_nfs_readavg_exe(part_for_nfsread):
     '''
     Define the threshold as a float instead of an integer.
+
     Define the Latency as a float.
     If you don't do these, the answers will be wrong
     '''
-    ReadThreshold = 50.0
-    get_read_time_cmd = "nfsiostat " + partition + " |awk 'FNR == 7 {print $NF}'"
-    ReadLatency = float(subprocess.check_output(get_read_time_cmd, shell=True))
-    # print 'The ReadLatency is {}\n'.format(ReadLatency)
-    # if ReadLatency > ReadThreshold:
-    #   print 'Read latency on {} exceeds the threshold of {}'.format(partition,ReadThreshold)
+    read_threshold = 50.0
+    get_read_time_cmd = "nfsiostat " + part_for_nfsread + " |awk 'FNR == 7 {print $NF}'"
+    read_latency = float(subprocess.check_output(get_read_time_cmd, shell=True))
+    # print 'The read_latency is {}\n'.format(read_latency)
+    # if read_latency > read_threshold:
+    # print 'Read latency on {} exceeds the threshold of {}'.format(part_for_nfsread,read_threshold)
     # Call Datadog's statsd module to push the metric to Datadog
-    statsd.gauge('system.ReadLatency.{}'.format(partition), ReadLatency)
+    statsd.gauge('system.read_latency.{}'.format(part_for_nfsread), read_latency)
 
 
-def GetNfsWriteAvgExe(partition):
+def get_nfs_writeavg_exe(part_for_nfswrite):
     '''
     Define the threshold as a float instead of an integer.
+
     Define the Latency as a float.
     If you don't do these, the values will be incorrect
     '''
-    WriteThreshold = 100.0
-    get_write_time_cmd = "nfsiostat " + partition + " |awk 'FNR == 9 {print $NF}'"
-    WriteLatency = float(subprocess.check_output(get_write_time_cmd, shell=True))
-    # print 'The WriteLatency is {}\n'.format(WriteLatency)
-    # if WriteLatency > WriteThreshold:
-    #   print 'Write latency on {} exceeds the threshold of {}'.format(partition,WriteThreshold)
+    write_threshold = 100.0
+    get_write_time_cmd = "nfsiostat " + part_for_nfswrite + " |awk 'FNR == 9 {print $NF}'"
+    write_latency = float(subprocess.check_output(get_write_time_cmd, shell=True))
+    # print 'The write_latency is {}\n'.format(write_latency)
+    # if write_latency > write_threshold:
+    # print 'Write latency on {} exceeds the
+    # threshold of {}'.format(part_for_nfswrite,write_threshold)
     # Call Datadog's statsd module to push the metric to Datadog
-    statsd.gauge('system.WriteLatency.{}'.format(partition), WriteLatency)
+    statsd.gauge('system.write_latency.{}'.format(part_for_nfswrite), write_latency)
 
 
 
 # for localfs in localfs_list.splitlines():
 #   # print 'Now getting stats for {}'.format(localfs)
 #   get_localfs_await(localfs)
-#   GetLocalfsSvctm(localfs)
-#   GetLocalfsPctutil(localfs)
+#   get_localfs_svctm(localfs)
+#   get_localfs_pctutil(localfs)
 
 # We call the function once every 10 seconds to prevent data being uploaded too rapidly.
 
@@ -155,6 +161,6 @@ while True:
     for partition in NFS_LIST:
     # for partition in '<insert nfs mount here>'.splitlines():   # this is for debugging
         # print 'Now processing mount: {}\n'.format(partition)   # this is for debugging
-        GetNfsReadAvgExe(partition)
-        GetNfsWriteAvgExe(partition)
+        get_nfs_readavg_exe(partition)
+        get_nfs_writeavg_exe(partition)
         time.sleep(10)
