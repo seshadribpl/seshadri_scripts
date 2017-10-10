@@ -217,7 +217,7 @@ def post_metric(user):
 
     statsd.gauge('system.openfilesperuser.{}'.format(user), percent_threads_by_user)
     # If it is needed to report the absolute count of threads per user, uncomment the line below
-    # statsd.gauge('system.openfilesperuser.{}'.format(user), totalThreadsByUser)
+    statsd.gauge('system.openfilesperuser.{}'.format(user), total_threads_by_user)
 
 
 ######## End of open files section ########
