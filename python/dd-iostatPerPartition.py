@@ -82,34 +82,40 @@ LOCALFS_LIST = subprocess.check_output(GET_LOCALFS_LIST_CMD, shell=True)
 # print 'The local filesystems on this host are: {}'.format(LOCALFS_LIST)
 
 
-def get_localfs_await(part_for_await):
-    ''' Calculates the await on the local partition '''
-    iostat_cmd = 'iostat -xd ' + part_for_await + ' 1 1'
-    await_threshold = 0.1
-    raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
-    # print raw_data
-    await = raw_data[3].split()[9]
-    svctm = raw_data[3].split()[12]
-    pct_util = raw_data[3].split()[13]
-    # print 'The await on {} is {}'.format (part_for_await, await)
-    # if await > await_threshold:
-    #   print 'The await on {} exceeds the threshold of {}'.format(part_for_await, await_threshold)
+# The following block is needed if you wish to evaluate local filesystems
 
-def get_localfs_svctm(part_for_svctm):
-    ''' Calculates the service time for the local partition '''
-    iostat_cmd = 'iostat -xd ' + part_for_svctm + ' 1 1'
-    raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
-    # print raw_data
-    svctm = raw_data[3].split()[12]
-    # print 'The svctm on {} is {}'.format (part_for_svctm, svctm)
 
-def get_localfs_pctutil(part_for_pctutil):
-    ''' Calculates the % utilization of the local fs '''
-    iostat_cmd = 'iostat -xd ' + part_for_pctutil + ' 1 1'
-    raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
-    # print raw_data
-    pct_util = raw_data[3].split()[13]
-    # print 'The pct_util on {} is {}'.format (part_for_pctutil, pct_util)
+
+# def get_localfs_await(part_for_await):
+#     ''' Calculates the await on the local partition '''
+#     iostat_cmd = 'iostat -xd ' + part_for_await + ' 1 1'
+#     await_threshold = 0.1
+#     raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
+#     # print raw_data
+#     await = raw_data[3].split()[9]
+#     svctm = raw_data[3].split()[12]
+#     pct_util = raw_data[3].split()[13]
+#     # print 'The await on {} is {}'.format (part_for_await, await)
+#     # if await > await_threshold:
+#     #  print 'The await on {} exceeds the threshold of {}'.format(part_for_await, await_threshold)
+
+# def get_localfs_svctm(part_for_svctm):
+#     ''' Calculates the service time for the local partition '''
+#     iostat_cmd = 'iostat -xd ' + part_for_svctm + ' 1 1'
+#     raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
+#     # print raw_data
+#     svctm = raw_data[3].split()[12]
+#     # print 'The svctm on {} is {}'.format (part_for_svctm, svctm)
+
+# def get_localfs_pctutil(part_for_pctutil):
+#     ''' Calculates the % utilization of the local fs '''
+#     iostat_cmd = 'iostat -xd ' + part_for_pctutil + ' 1 1'
+#     raw_data = subprocess.check_output(iostat_cmd, shell=True).splitlines()
+#     # print raw_data
+#     pct_util = raw_data[3].split()[13]
+#     # print 'The pct_util on {} is {}'.format (part_for_pctutil, pct_util)
+
+
 
 def get_nfs_readavg_exe(part_for_nfsread):
     '''
@@ -118,7 +124,7 @@ def get_nfs_readavg_exe(part_for_nfsread):
     Define the Latency as a float.
     If you don't do these, the answers will be wrong
     '''
-    read_threshold = 50.0
+    # read_threshold = 50.0
     get_read_time_cmd = "nfsiostat " + part_for_nfsread + " |awk 'FNR == 7 {print $NF}'"
     read_latency = float(subprocess.check_output(get_read_time_cmd, shell=True))
     # print 'The read_latency is {}\n'.format(read_latency)
@@ -135,7 +141,7 @@ def get_nfs_writeavg_exe(part_for_nfswrite):
     Define the Latency as a float.
     If you don't do these, the values will be incorrect
     '''
-    write_threshold = 100.0
+    # write_threshold = 100.0
     get_write_time_cmd = "nfsiostat " + part_for_nfswrite + " |awk 'FNR == 9 {print $NF}'"
     write_latency = float(subprocess.check_output(get_write_time_cmd, shell=True))
     # print 'The write_latency is {}\n'.format(write_latency)
