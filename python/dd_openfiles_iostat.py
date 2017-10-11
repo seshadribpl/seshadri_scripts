@@ -43,9 +43,11 @@ import subprocess
 import sys
 import time
 import resource
+from argparse import ArgumentParser
 import psutil
 import os
 import glob
+
 
 
 
@@ -72,13 +74,31 @@ except IOError:
     print 'The Datadog agent is not running'
     sys.exit(-1)
 
-######## Start of iostat section ########
+
 
 # Use psutil to generate the list of NFS filesystems
+# By default, the script works on all the mounted nfs filesystems.
+# To get metrics of specific filesystems, arguments can be passed which
+# are parsed using the argparse module
 
-MOUNTS = psutil.disk_partitions(all=True)
-NFS_LIST = [mount.mountpoint for mount in MOUNTS if mount.fstype == 'nfs']
-print NFS_LIST
+PARSER = ArgumentParser()
+PARSER.add_argument('-p', '--partition-list', dest='partition_list',
+                    help='comma-separated list of nfs filesystems',
+                    metavar='PARTITIONS')
+
+ARGS = PARSER.parse_args()
+
+if ARGS.partition_list is None:
+    MOUNTS = psutil.disk_partitions(all=True)
+    NFS_LIST = [mount.mountpoint for mount in MOUNTS if mount.fstype == 'nfs']
+    print NFS_LIST
+
+else:
+    NFS_LIST = ARGS.partition_list.split(',')
+    print NFS_LIST
+
+
+######## Start of iostat section ########
 
 # Create a class for NFS tools and define methods to get various metrics
 
