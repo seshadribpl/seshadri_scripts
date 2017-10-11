@@ -256,8 +256,3 @@ while True:
         post_metric(username)
 
     time.sleep(10)
-
-
-
-
-

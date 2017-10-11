@@ -2,12 +2,21 @@
 # _*_ coding: utf-8 _*_
 
 '''
-A small script to demonstrate argument parsing
+Name
+    arg-parse.py - A small script to demonstrate argument parsing
 
-This script accepts arguments for  users and nfs mounts.
-If absent, it picks up those variables from the host.
+DESCRIPTION
 
-Seshadri Kothandaraman 11 Oct 2017
+        This script accepts arguments for  users and nfs mounts.
+        If absent, it picks up those variables from the host.
+        Seshadri Kothandaraman 11 Oct 2017
+
+    Usage:
+        arg_parse.py    # The defaults
+        arg_parse.py -u kothand,gupta    # Specify custom users
+        arg_parse.py -u kothand,gupta -p /data/ci,/home/kothand    # Specify custom mounts
+
+
 '''
 
 from argparse import ArgumentParser
