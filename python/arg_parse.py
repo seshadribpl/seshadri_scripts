@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+'''
+A small script to demonstrate argument parsing
+
+This script accepts arguments for  users and nfs mounts.
+If absent, it picks up those variables from the host.
+
+Seshadri Kothandaraman 11 Oct 2017
+'''
+
 from argparse import ArgumentParser
 import subprocess
 import psutil
