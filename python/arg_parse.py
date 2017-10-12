@@ -7,9 +7,10 @@ Name
 
 DESCRIPTION
 
-        This script accepts arguments for  users and nfs mounts.
+        This script accepts optional arguments for  users and nfs mounts.
         If absent, it picks up those variables from the host.
-        Seshadri Kothandaraman 11 Oct 2017
+
+        Author: Seshadri Kothandaraman 11 Oct 2017
 
     Usage:
         arg_parse.py    # The defaults
@@ -28,11 +29,14 @@ PARSER = ArgumentParser()
 # Add options
 
 PARSER.add_argument('-p', '--partition-list', dest='partition_list',
-                    help='comma-separated list of nfs filesystems',
+                    help='optional comma-separated list of nfs filesystems on this host',
                     metavar='PARTITIONS')
 PARSER.add_argument('-u', '--user-list', dest='user_list',
-                    help='comma-separated list of users on this host',
+                    help='optional comma-separated list of users on this host',
                     metavar='USERS')
+PARSER.add_argument('-t', '--openfiles-report-type', dest='report_type',
+                    action='store', type=str,choices=['y', 'n'], help='post metrics as percentage, default is count')
+                    
 
 ARGS = PARSER.parse_args()
 
@@ -44,12 +48,19 @@ if ARGS.partition_list is None:
     USERLIST = subprocess.check_output(GETUSERSCMD, shell=True)
     print 'Default user list is: \n{}'.format(USERLIST)
     print 'Default nfs list is: \n{}'.format(NFS_LIST)
+    
 
 
 else:
     NFS_LIST = ARGS.partition_list.split(',')
     USERLIST = ARGS.user_list
+    OPENFILESREPORTTYPE = 'percent'
 
 
     print 'Custom NFS list: {}'.format(NFS_LIST)
     print 'Custom User list: {}'.format(USERLIST)
+
+if ARGS.report_type == 'y':
+    print 'Reporting the open files as a percentage'
+else:
+    print 'Reporting the open files as an absolute count'

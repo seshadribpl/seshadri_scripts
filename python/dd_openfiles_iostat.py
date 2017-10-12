@@ -82,23 +82,64 @@ except IOError:
 # are parsed using the argparse module
 
 PARSER = ArgumentParser()
+
+##########################################################
+# This section allows optional arguments to be passed on #
+##########################################################
+
 PARSER.add_argument('-p', '--partition-list', dest='partition_list',
-                    help='comma-separated list of nfs filesystems',
+                    help='optional comma-separated list of nfs filesystems on this host',
                     metavar='PARTITIONS')
+PARSER.add_argument('-u', '--user-list', dest='user_list',
+                    help='optional comma-separated list of users on this host',
+                    metavar='USERS')
+PARSER.add_argument('-t', '--openfiles-report-type', dest='report_type',
+                    action='store', type=str, choices=['y', 'n'],
+                    help='post metrics as percentage, default is count')
+
+
 
 ARGS = PARSER.parse_args()
+
 
 if ARGS.partition_list is None:
     MOUNTS = psutil.disk_partitions(all=True)
     NFS_LIST = [mount.mountpoint for mount in MOUNTS if mount.fstype == 'nfs']
-    print NFS_LIST
+    GETUSERSCMD = "who |awk '{print $1}' |sort -u"
+    USERLIST = subprocess.check_output(GETUSERSCMD, shell=True)
+    print 'Default user list is: \n{}'.format(USERLIST)
+    print 'Default nfs list is: \n{}'.format(NFS_LIST)
+
+
 
 else:
     NFS_LIST = ARGS.partition_list.split(',')
-    print NFS_LIST
+    USERLIST = ARGS.user_list
 
 
-######## Start of iostat section ########
+
+    print 'Custom NFS list: {}'.format(NFS_LIST)
+    print 'Custom User list: {}'.format(USERLIST)
+
+
+if ARGS.report_type == 'y':
+    print 'Reporting the open files as a percentage'
+    OPENFILESREPORTTYPE = 'percent'
+else:
+    print 'Reporting the open files as an absolute count'
+    OPENFILESREPORTTYPE = 'count'
+
+
+
+################################
+#   End of argument parsing    #
+################################
+
+
+
+################################
+#   Start of iostat section    #
+################################
 
 # Create a class for NFS tools and define methods to get various metrics
 
@@ -154,9 +195,17 @@ def get_nfs_writeavg_exe(nfs_partition):
 
     statsd.gauge('system.write_latency.{}'.format(nfs_partition), write_latency)
 
-######## End of iostat section ########
 
-######## Start of open files section ########
+################################
+#   End of iostat section      #
+################################
+
+
+
+################################
+# Start of open files section  #
+################################
+
 
 # Confirm that /proc is mounted. If not, warn and exit
 
@@ -235,12 +284,23 @@ def post_metric(user):
     # Since we need to be alerted on a per-user basis, we include the username in
     # the metric that is pushed out to Datadog.
 
-    statsd.gauge('system.openfilesperuser.{}'.format(user), percent_threads_by_user)
-    # If it is needed to report the absolute count of threads per user, uncomment the line below
-    statsd.gauge('system.openfilesperuser.{}'.format(user), total_threads_by_user)
+
+    # The default action is to report the absolute count of threads per user.
+    # This action can be altered with argument passing while invoking the script.
 
 
-######## End of open files section ########
+    if OPENFILESREPORTTYPE == 'percent':
+        statsd.gauge('system.openfilesperuser.{}'.format(user), percent_threads_by_user)
+
+    else:
+        statsd.gauge('system.openfilesperuser.{}'.format(user), total_threads_by_user)
+
+
+
+
+################################
+#  End of open files section   #
+################################
 
 
 # Run the functions every 10 seconds to prevent data being uploaded too rapidly.
