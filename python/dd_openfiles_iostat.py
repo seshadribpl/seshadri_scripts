@@ -43,7 +43,8 @@ import subprocess
 import sys
 import time
 import resource
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import textwrap
 import psutil
 import os
 import glob
@@ -87,6 +88,18 @@ PARSER = ArgumentParser()
 # This section allows optional arguments to be passed on #
 ##########################################################
 
+
+PARSER = ArgumentParser(prog='arg_parse.py', formatter_class=
+                        RawDescriptionHelpFormatter, description=
+                        textwrap.dedent('''An integrated extendable script to
+post custom metrics to Datadog.\n
+    '''), epilog=
+                        textwrap.dedent('''
+    Here is a usage example: \n
+    dd_openfiles_iostat.py -p /data/ci,/data/home\
+ -u kothand,beethoven iostat\n'''))
+
+
 PARSER.add_argument('-p', '--partition-list', dest='partition_list',
                     help='optional comma-separated list of nfs filesystems on this host',
                     metavar='PARTITIONS')
@@ -96,6 +109,7 @@ PARSER.add_argument('-u', '--user-list', dest='user_list',
 PARSER.add_argument('-t', '--openfiles-report-type', dest='report_type',
                     action='store', type=str, choices=['y', 'n'],
                     help='post metrics as percentage, default is count')
+PARSER.add_argument('postmetric', default=[], nargs='*')
 
 
 
@@ -129,6 +143,7 @@ else:
     print 'Reporting the open files as an absolute count'
     OPENFILESREPORTTYPE = 'count'
 
+print('posting these metrics to datadog: {}'.format(ARGS.postmetric))
 
 
 ################################

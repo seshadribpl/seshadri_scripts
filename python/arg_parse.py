@@ -20,11 +20,18 @@ DESCRIPTION
 
 '''
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import subprocess
 import psutil
+import textwrap
 
-PARSER = ArgumentParser()
+PARSER = ArgumentParser(prog='arg_parse.py',formatter_class=
+    RawDescriptionHelpFormatter, description=
+    textwrap.dedent('''An integrated extendable script to post custom metrics to Datadog.\n
+    '''), epilog=
+    textwrap.dedent('''
+    Here is a usage example: dd_openfiles_iostat.py -p /data/ci,/data/home\
+ -u kothand,beethoven iostat'''))
 
 # Add options
 
@@ -36,7 +43,9 @@ PARSER.add_argument('-u', '--user-list', dest='user_list',
                     metavar='USERS')
 PARSER.add_argument('-t', '--openfiles-report-type', dest='report_type',
                     action='store', type=str,choices=['y', 'n'], help='post metrics as percentage, default is count')
-                    
+PARSER.add_argument('postmetric', default=[], nargs='*')
+
+# my_help_doc = PARSER(description='My first argparse attempt', epilog='Here is a usage example')
 
 ARGS = PARSER.parse_args()
 
@@ -64,3 +73,5 @@ if ARGS.report_type == 'y':
     print 'Reporting the open files as a percentage'
 else:
     print 'Reporting the open files as an absolute count'
+
+print('posting these metrics to datadog: {}'.format(ARGS.postmetric))
