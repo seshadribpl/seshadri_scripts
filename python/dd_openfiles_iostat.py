@@ -43,7 +43,7 @@ import subprocess
 import sys
 import time
 import resource
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser, RawDescriptionHelpFormatter, REMAINDER
 import textwrap
 import psutil
 import os
@@ -82,7 +82,13 @@ except IOError:
 # To get metrics of specific filesystems, arguments can be passed which
 # are parsed using the argparse module
 
-PARSER = ArgumentParser()
+PARSER = ArgumentParser(prog='arg_parse.py',formatter_class=
+    RawDescriptionHelpFormatter, description=
+    textwrap.dedent('''An integrated extendable script to post custom metrics to Datadog.\n
+    '''), epilog=
+    textwrap.dedent('''
+    Here is a usage example: dd_openfiles_iostat.py -p /data/ci,/data/home\
+ -u kothand,beethoven iostat'''))
 
 ##########################################################
 # This section allows optional arguments to be passed on #
@@ -103,17 +109,31 @@ post custom metrics to Datadog.\n
 PARSER.add_argument('-p', '--partition-list', dest='partition_list',
                     help='optional comma-separated list of nfs filesystems on this host',
                     metavar='PARTITIONS')
+
 PARSER.add_argument('-u', '--user-list', dest='user_list',
                     help='optional comma-separated list of users on this host',
                     metavar='USERS')
+
 PARSER.add_argument('-t', '--openfiles-report-type', dest='report_type',
                     action='store', type=str, choices=['y', 'n'],
                     help='post metrics as percentage, default is count')
-PARSER.add_argument('postmetric', default=[], nargs='*')
+
+PARSER.add_argument('postmetric', nargs=REMAINDER, default='all', )
+
 
 
 
 ARGS = PARSER.parse_args()
+
+try:
+    LIST_OF_METRICS = ARGS.postmetric[0].split(',')
+
+except IndexError:
+    print 'You did not supply any positional parameters. Bailing out ...'
+    print 'Here is a usage example: dd_openfiles_iostat.py -p /data/ci,/data/home\
+ -u kothand,beethoven -t y some_metric'
+    sys.exit(-1)
+    # LIST_OF_METRICS = ['iostat', 'openfiles']
 
 
 if ARGS.partition_list is None:
