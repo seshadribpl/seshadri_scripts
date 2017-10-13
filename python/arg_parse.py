@@ -60,7 +60,7 @@ except IndexError:
     print 'Here is a usage example: dd_openfiles_iostat.py -p /data/ci,/data/home\
  -u kothand,beethoven -t y some_metric'
     # sys.exit(-1)
-    LIST_OF_METRICS = ['iostat', 'openfiles']
+
 
 
 if ARGS.partition_list is None:
@@ -94,7 +94,11 @@ else:
 print 'posting these metrics to datadog: {}'.format(LIST_OF_METRICS)
 
 
-if not LIST_OF_METRICS:
-    print 'You did not supply any positional parameters'
-    print 'Here is a usage example: dd_openfiles_iostat.py -p /data/ci,/data/home\
- -u kothand,beethoven -t y some_metric'
+if 'mnstat' in LIST_OF_METRICS:
+    print 'reporting mnstat metrics'
+
+elif 'iostat' in LIST_OF_METRICS:
+    print 'reporting iostat metrics'
+
+else:
+    print 'no such metric'
