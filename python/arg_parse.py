@@ -20,10 +20,11 @@ DESCRIPTION
 
 '''
 
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser, RawDescriptionHelpFormatter, REMAINDER
 import subprocess
 import psutil
 import textwrap
+import sys
 
 PARSER = ArgumentParser(prog='arg_parse.py',formatter_class=
     RawDescriptionHelpFormatter, description=
@@ -43,11 +44,23 @@ PARSER.add_argument('-u', '--user-list', dest='user_list',
                     metavar='USERS')
 PARSER.add_argument('-t', '--openfiles-report-type', dest='report_type',
                     action='store', type=str,choices=['y', 'n'], help='post metrics as percentage, default is count')
-PARSER.add_argument('postmetric', default=[], nargs='*')
+# PARSER.add_argument('postmetric', default=[], nargs='*')
+PARSER.add_argument('postmetric', nargs=REMAINDER, default='all', )
 
 # my_help_doc = PARSER(description='My first argparse attempt', epilog='Here is a usage example')
 
 ARGS = PARSER.parse_args()
+
+
+try:
+    LIST_OF_METRICS = ARGS.postmetric[0].split(',')
+
+except IndexError:
+    print 'You did not supply any positional parameters. Bailing out ...'
+    print 'Here is a usage example: dd_openfiles_iostat.py -p /data/ci,/data/home\
+ -u kothand,beethoven -t y some_metric'
+    # sys.exit(-1)
+    LIST_OF_METRICS = ['iostat', 'openfiles']
 
 
 if ARGS.partition_list is None:
@@ -74,4 +87,14 @@ if ARGS.report_type == 'y':
 else:
     print 'Reporting the open files as an absolute count'
 
-print('posting these metrics to datadog: {}'.format(ARGS.postmetric))
+
+
+
+
+print 'posting these metrics to datadog: {}'.format(LIST_OF_METRICS)
+
+
+if not LIST_OF_METRICS:
+    print 'You did not supply any positional parameters'
+    print 'Here is a usage example: dd_openfiles_iostat.py -p /data/ci,/data/home\
+ -u kothand,beethoven -t y some_metric'
