@@ -4,9 +4,9 @@
 Author: Seshadri Kothandaraman 17 Oct 2017
 
 This is an extensible script. The objective of this script to get various custom metrics from
-hosts and upload them to Datadog for monitoring and alerting needs. Out of the box, Datadog 
-provides many metrics, however, we have felt the need to monitor more metrics that what is 
-being offered. 
+hosts and upload them to Datadog for monitoring and alerting needs. Out of the box, Datadog
+provides many metrics, however, we have felt the need to monitor more metrics that what is
+being offered.
 
 The script is organized as follows:
 
@@ -14,13 +14,18 @@ The script is organized as follows:
 
 2. Common checks: This include checks for presence of the Datadog agent, UID tests, etc.
 
-3. Argument parsing: This section grabs optional arguments that may be passed on to 
+3. Argument parsing: This section grabs optional arguments that may be passed on to
    the various sections.
 
 4. Metric classes: Every metric that needs to be uploaded to Datadog is identified by its
    own unique class. Each class is self-contained and doesn't depend on others to function.
-   Classes are delineated by big headers and footers.
+   Classes are delineated by headers and footers. The last method of every class should
+   call Datadog's statsd module and upload the metrics that were collected using
+   that class. In addition, it should allow at least one line for debug output.
 
+5. When a new class is created for a metric, an argument should be available to pass on
+   optional parameters. The class should then be instantiated at the end of the script
+   so that it can be run in a loop. The default upload interval is 10 seconds.
 
 '''
 
@@ -81,19 +86,17 @@ except IOError:
     sys.exit(-1)
 
 
+#########################################################
+#      End of UID and process check section             #
+#########################################################
 
 
-
-# Use psutil to generate the list of NFS filesystems
-# By default, the script works on all the mounted nfs filesystems.
-# To get metrics of specific filesystems, arguments can be passed which
-# are parsed using the argparse module
-
-PARSER = ArgumentParser(prog='arg_parse.py',formatter_class=
-    RawDescriptionHelpFormatter, description=
-    textwrap.dedent('''An integrated extendable script to post custom metrics to Datadog.\n
-    '''), epilog=
-    textwrap.dedent('''
+PARSER = ArgumentParser(prog='arg_parse.py', formatter_class=
+                        RawDescriptionHelpFormatter, description=
+                        textwrap.dedent('''An integrated extendable script to post custom metrics
+                         to Datadog.\n
+                        '''), epilog=
+                        textwrap.dedent('''
     Here is a usage example: dd_openfiles_iostat.py -p /data/ci,/data/home\
  -u kothand,beethoven iostat'''))
 
@@ -143,7 +146,16 @@ except IndexError:
     # LIST_OF_METRICS = ['iostat', 'openfiles']
 
 
+
+
+# Use psutil to generate the list of NFS filesystems
+# By default, the script works on all the mounted nfs filesystems.
+# To get metrics of specific filesystems, arguments can be passed which
+# are parsed using the argparse module
+
+
 if ARGS.partition_list is None:
+
     MOUNTS = psutil.disk_partitions(all=True)
     NFS_LIST = [mount.mountpoint for mount in MOUNTS if mount.fstype == 'nfs']
     GETUSERSCMD = "who |awk '{print $1}' |sort -u"
@@ -154,6 +166,7 @@ if ARGS.partition_list is None:
 
 
 else:
+
     NFS_LIST = ARGS.partition_list.split(',')
     USERLIST = ARGS.user_list
 
@@ -164,13 +177,16 @@ else:
 
 
 if ARGS.report_type == 'y':
+
     print 'Reporting the open files as a percentage'
     OPENFILESREPORTTYPE = 'percent'
+
 else:
+
     print 'Reporting the open files as an absolute count'
     OPENFILESREPORTTYPE = 'count'
 
-print('posting these metrics to datadog: {}'.format(ARGS.postmetric))
+print 'posting these metrics to datadog: {}'.format(ARGS.postmetric)
 
 
 ################################
@@ -195,59 +211,65 @@ For NFS, we consider the following two metrics:
     the RPC request is completed, this includes the RTT time above.
 '''
 
+
 # Create a class for NFS tools and define methods to get various metrics
 
-# class NFS:
-#     '''
-#     Instantiate methods for each mounted filesystem.
-#     '''
-
-#     def __init__(self, nfs_partition):
-#         '''
-#         Initialize variables
-#         '''
-
-#         self.nfs_partition = nfs_partition
-#         nfs_partition = None
-
-
-def get_nfs_readavg_exe(nfs_partition):
-    '''
-    Some variable caveats to be noted:
-
-    Define the threshold as a float instead of an integer.
-    Define the Latency as a float.
-    If you don't do these, the answers will be wrong
+class NfsIostat:
 
     '''
-
-    # self.nfs_partition = nfs_partition
-
-    get_read_time_cmd = "nfsiostat " + nfs_partition + " |awk 'FNR == 7 {print $NF}'"
-    read_latency = float(subprocess.check_output(get_read_time_cmd, shell=True))
-
-    # Call Datadog's statsd module to push the metric to Datadog
-
-    statsd.gauge('system.read_latency.{}'.format(nfs_partition), read_latency)
-
-def get_nfs_writeavg_exe(nfs_partition):
-    '''
-    Some variable caveats to be noted:
-
-    Define the threshold as a float instead of an integer.
-    Define the Latency as a float.
-    If you don't do these, the answers will be wrong
-
+    Instantiate methods for each mounted filesystem.
     '''
 
-    # self.nfs_partition = nfs_partition
+    def __init__(self):
 
-    get_write_time_cmd = "nfsiostat " + nfs_partition + " |awk 'FNR == 9 {print $NF}'"
-    write_latency = float(subprocess.check_output(get_write_time_cmd, shell=True))
+        '''
+        Initialize variables.
+        We need only the name of the nfs partition to get metrics
+        '''
 
-    # Call Datadog's statsd module to push the metric to Datadog
+        pass
 
-    statsd.gauge('system.write_latency.{}'.format(nfs_partition), write_latency)
+
+
+    def get_nfs_readavg_exe(self, nfs_partition):
+
+        '''
+        Some variable caveats to be noted:
+
+        Define the threshold as a float instead of an integer.
+        Define the Latency as a float.
+        If you don't do these, the answers will be wrong
+
+        '''
+
+        # self.nfs_partition = nfs_partition
+
+        get_read_time_cmd = "nfsiostat " + nfs_partition + " |awk 'FNR == 7 {print $NF}'"
+        read_latency = float(subprocess.check_output(get_read_time_cmd, shell=True))
+
+        # Call Datadog's statsd module to push the metric to Datadog
+
+        statsd.gauge('system.read_latency.{}'.format(nfs_partition), read_latency)
+
+    def get_nfs_writeavg_exe(self, nfs_partition):
+
+        '''
+        Some variable caveats to be noted:
+
+        Define the threshold as a float instead of an integer.
+        Define the Latency as a float.
+        If you don't do these, the answers will be wrong
+
+        '''
+
+
+
+        get_write_time_cmd = "nfsiostat " + nfs_partition + " |awk 'FNR == 9 {print $NF}'"
+        write_latency = float(subprocess.check_output(get_write_time_cmd, shell=True))
+
+        # Call Datadog's statsd module to push the metric to Datadog
+
+        statsd.gauge('system.write_latency.{}'.format(nfs_partition), write_latency)
 
 
 ################################
@@ -339,6 +361,7 @@ def post_metric(user):
     for i in list_of_pids:
 
         if len(i) > 0:
+
             # print 'The current PID is {}'.format(i)  # Debug option
             # print len(glob.glob('/proc/' + i + '/fd/*')) # Debug option
             # glob is better than system/os wc -l
@@ -363,9 +386,11 @@ def post_metric(user):
 
 
     if OPENFILESREPORTTYPE == 'percent':
+
         statsd.gauge('system.openfilesperuser.{}'.format(user), percent_threads_by_user)
 
     else:
+
         statsd.gauge('system.openfilesperuser.{}'.format(user), total_threads_by_user)
 
 
@@ -379,13 +404,31 @@ def post_metric(user):
 # Run the functions every 10 seconds to prevent data being uploaded too rapidly.
 
 while True:
+    GET_NFSIOSTAT_STATS = NfsIostat()
 
     for partition in NFS_LIST:
-        get_nfs_readavg_exe(partition)
-        get_nfs_writeavg_exe(partition)
 
-
-    for username in USERLIST.splitlines():
-        post_metric(username)
+        GET_NFSIOSTAT_STATS.get_nfs_readavg_exe(partition)
+        GET_NFSIOSTAT_STATS.get_nfs_writeavg_exe(partition)
 
     time.sleep(10)
+
+
+
+
+
+##############  Old code below.... delete when done #################
+
+# while True:
+
+#     for partition in NFS_LIST:
+
+#         get_nfs_readavg_exe(partition)
+#         get_nfs_writeavg_exe(partition)
+
+
+#     for username in USERLIST.splitlines():
+
+#         post_metric(username)
+
+#     time.sleep(10)
