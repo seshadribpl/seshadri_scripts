@@ -334,64 +334,80 @@ print 'The max number of threads per user is: {}\n'.format(resource.getrlimit(
     resource.RLIMIT_NPROC))
 
 
-
-def post_metric(user):
-
-    '''
-    Get the PIDs of each user and the threads' usage
+class OpenFiles:
 
     '''
+    Report the number of open files per user
+    '''
 
-    # user = 'kothand' # This and the following line can be uncommented for debugging
-    # print 'Getting the PIDS of user: {}'.format(self.user)
+    def __init__(self):
 
-    print 'Getting the PIDS of user: {}'.format(user)
-
-    ps_cmd = "ps --no-header -U " + user + " -u " + user + " u |awk '{print $2}'"
-    list_of_pids = subprocess.check_output(ps_cmd, shell=True).split('\n')
-    print 'Here are the PIDs: '
-    print list_of_pids
-
-    # Initialize the threads counter for this user for this run
+        '''
+        Get limits of file descriptors and threads per user
+        Upon encountering this limit, fork(2) fails with the error EAGAIN
+        '''
+        pass
 
 
-    total_threads_by_user = 0
+
+    def post_metric(self, user):
+
+        '''
+        Get the PIDs of each user and the threads' usage
+
+        '''
+
+        # user = 'kothand' # This and the following line can be uncommented for debugging
+        # print 'Getting the PIDS of user: {}'.format(self.user)
+
+        print 'Getting the PIDS of user: {}'.format(user)
+
+        ps_cmd = "ps --no-header -U " + user + " -u " + user + " u |awk '{print $2}'"
+        list_of_pids = subprocess.check_output(ps_cmd, shell=True).split('\n')
+        print 'Here are the PIDs: '
+        print list_of_pids
+
+        # Initialize the threads counter for this user for this run
 
 
-    for i in list_of_pids:
-
-        if len(i) > 0:
-
-            # print 'The current PID is {}'.format(i)  # Debug option
-            # print len(glob.glob('/proc/' + i + '/fd/*')) # Debug option
-            # glob is better than system/os wc -l
-            total_threads_by_user += len(glob.glob('/proc/' + i + '/fd/*'))
-
-    # Calculate the threads used by the user as a percentage of
-    # the total threads available to a user
-
-    percent_threads_by_user = (total_threads_by_user * 100)/TOTALSYSTEMTHREADS
-    print 'The total number of threads used by user "{}" is: {}'.format(user, total_threads_by_user)
-    print 'The percent of threads used by user {} is:  {}'.format(user, percent_threads_by_user)
-    print 'Pushing metric {} for user {} as system.openfilesperuser.{}'.format(
-        percent_threads_by_user, user, user)
-
-    # Call Datadog's statsd module to push the metric to Datadog
-    # Since we need to be alerted on a per-user basis, we include the username in
-    # the metric that is pushed out to Datadog.
+        total_threads_by_user = 0
 
 
-    # The default action is to report the absolute count of threads per user.
-    # This action can be altered with argument passing while invoking the script.
+        for i in list_of_pids:
+
+            if len(i) > 0:
+
+                # print 'The current PID is {}'.format(i)  # Debug option
+                # print len(glob.glob('/proc/' + i + '/fd/*')) # Debug option
+                # glob is better than system/os wc -l
+                total_threads_by_user += len(glob.glob('/proc/' + i + '/fd/*'))
+
+        # Calculate the threads used by the user as a percentage of
+        # the total threads available to a user
+
+        percent_threads_by_user = (total_threads_by_user * 100)/TOTALSYSTEMTHREADS
+        print 'The total number of threads used by user "{}" is: {}'.format(
+            user, total_threads_by_user)
+        print 'The percent of threads used by user {} is:  {}'.format(user, percent_threads_by_user)
+        print 'Pushing metric {} for user {} as system.openfilesperuser.{}'.format(
+            percent_threads_by_user, user, user)
+
+        # Call Datadog's statsd module to push the metric to Datadog
+        # Since we need to be alerted on a per-user basis, we include the username in
+        # the metric that is pushed out to Datadog.
 
 
-    if OPENFILESREPORTTYPE == 'percent':
+        # The default action is to report the absolute count of threads per user.
+        # This action can be altered with argument passing while invoking the script.
 
-        statsd.gauge('system.openfilesperuser.{}'.format(user), percent_threads_by_user)
 
-    else:
+        if OPENFILESREPORTTYPE == 'percent':
 
-        statsd.gauge('system.openfilesperuser.{}'.format(user), total_threads_by_user)
+            statsd.gauge('system.openfilesperuser.{}'.format(user), percent_threads_by_user)
+
+        else:
+
+            statsd.gauge('system.openfilesperuser.{}'.format(user), total_threads_by_user)
 
 
 
