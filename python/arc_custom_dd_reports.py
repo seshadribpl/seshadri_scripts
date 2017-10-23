@@ -27,6 +27,9 @@ The script is organized as follows:
    optional parameters. The class should then be instantiated at the end of the script
    so that it can be run in a loop. The default upload interval is 10 seconds.
 
+6. WHile at times a class might not be needed (a function might serve the purpose),
+   in order to maintain uniformity and help expandability, it is done so.
+
 '''
 
 # Common tasks
@@ -49,9 +52,23 @@ import glob
 
 
 
-
-# from psutil import disk_partitions
 from datadog import statsd
+
+
+# Compatibility check. Python 2.6 doesn't have a check_output.
+# So we define a function with that name. By Greg Hewgill
+
+if 'check_output' not in dir(subprocess):
+    def check_output(cmd_args, *args, **kwargs):
+        proc = subprocess.Popen(
+            cmd_args, *args,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+        out, err = proc.communicate()
+        if proc.returncode != 0:
+            raise subprocess.CalledProcessError(args)
+        return out
+    subprocess.check_output = check_output
+
 
 
 #########################################################
@@ -134,6 +151,8 @@ PARSER.add_argument('postmetric', nargs=REMAINDER, default='all', )
 
 
 ARGS = PARSER.parse_args()
+
+LIST_OF_METRICS = []
 
 try:
     LIST_OF_METRICS = ARGS.postmetric[0].split(',')
@@ -421,11 +440,20 @@ class OpenFiles:
 
 while True:
     GET_NFSIOSTAT_STATS = NfsIostat()
+    GET_OPENFILES_STATS = OpenFiles()
 
-    for partition in NFS_LIST:
+    if 'iostat' in LIST_OF_METRICS:
 
-        GET_NFSIOSTAT_STATS.get_nfs_readavg_exe(partition)
-        GET_NFSIOSTAT_STATS.get_nfs_writeavg_exe(partition)
+        for partition in NFS_LIST:
+
+            GET_NFSIOSTAT_STATS.get_nfs_readavg_exe(partition)
+            GET_NFSIOSTAT_STATS.get_nfs_writeavg_exe(partition)
+
+    if 'openfiles' in LIST_OF_METRICS:
+
+        for username in USERLIST.splitlines():
+            GET_OPENFILES_STATS.post_metric(username)
+
 
     time.sleep(10)
 
