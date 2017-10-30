@@ -177,7 +177,7 @@ if ARGS.partition_list is None:
 
     MOUNTS = psutil.disk_partitions(all=True)
     NFS_LIST = [mount.mountpoint for mount in MOUNTS if mount.fstype == 'nfs']
-    GETUSERSCMD = "who |awk '{print $1}' |sort -u"
+    GETUSERSCMD = "ps -eo user |awk 'NR > 1'|sort -u"
     USERLIST = subprocess.check_output(GETUSERSCMD, shell=True)
     print 'Default user list is: \n{}'.format(USERLIST)
     print 'Default nfs list is: \n{}'.format(NFS_LIST)
@@ -330,7 +330,10 @@ if not os.path.ismount('/proc'):
 # Generate the list of unique users logged in to this system
 
 print 'Here are users logged in to this host: \n'
-GETUSERSCMD = "who |awk '{print $1}' |sort -u"
+# GETUSERSCMD = "who |awk '{print $1}' |sort -u"
+
+GETUSERSCMD = "ps -eo user |awk 'NR > 1'|sort -u"
+
 
 USERLIST = subprocess.check_output(GETUSERSCMD, shell=True)
 print USERLIST
