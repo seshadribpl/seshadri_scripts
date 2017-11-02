@@ -27,24 +27,10 @@ function checkADuser()
 
 
 $users = @("kothand", "foobar", "trucks", "hughesd")
+cls
 foreach($name in $users)
 {
   echoname($name)
   checkADuser($name)
 }
-## {
-
-##   try
-##   {
-##     # Write-Output "Now checking $name..."
-##     echoname($name)
-##     get-aduser -Identity $name|Out-Null
-##     Write-Output "User $name exists"
-    
-##   }
-##   catch
-##   {
-##     write-output "User $name does not exist"
-##   }
-## }
 
