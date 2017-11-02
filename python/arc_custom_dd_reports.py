@@ -39,20 +39,28 @@ The script is organized as follows:
 #                Import modules                          #
 ##########################################################
 
+try:
 
-import subprocess
-import sys
-import time
-import resource
-from argparse import ArgumentParser, RawDescriptionHelpFormatter, REMAINDER
-import textwrap
-import psutil
-import os
-import glob
+    import subprocess
+    import sys
+    import time
+    import resource
+    from argparse import ArgumentParser, RawDescriptionHelpFormatter, REMAINDER
+    import textwrap
+    import psutil
+    import os
+    import glob
 
 
 
-from datadog import statsd
+    from datadog import statsd
+
+# Exit if any module fails to load
+
+except ImportError:
+    raise 'ImportError One or more modules failed to load'
+    sys.exit(-2)
+
 
 
 # Compatibility check. Python 2.6 doesn't have a check_output.
@@ -463,19 +471,3 @@ while True:
 
 
 
-
-##############  Old code below.... delete when done #################
-
-# while True:
-
-#     for partition in NFS_LIST:
-
-#         get_nfs_readavg_exe(partition)
-#         get_nfs_writeavg_exe(partition)
-
-
-#     for username in USERLIST.splitlines():
-
-#         post_metric(username)
-
-#     time.sleep(10)
