@@ -27,7 +27,7 @@ The script is organized as follows:
    optional parameters. The class should then be instantiated at the end of the script
    so that it can be run in a loop. The default upload interval is 10 seconds.
 
-6. WHile at times a class might not be needed (a function might serve the purpose),
+6. While at times a class might not be needed (a function might serve the purpose),
    in order to maintain uniformity and help expandability, it is done so.
 
 '''
@@ -91,7 +91,7 @@ if 'check_output' not in dir(subprocess):
 
 # Check if the program is running as root. If not, warn about incomplete data
 
-if os.geteuid != 0:
+if os.geteuid() != 0:
     print 'You can run the script as a normal user, but you won\'t get reports of other users.\
      In addition, your own stats might be wrong'
 
@@ -168,7 +168,7 @@ try:
 except IndexError:
     print 'You did not supply any positional parameters. Bailing out ...'
     print 'Here is a usage example: dd_openfiles_iostat.py -p /data/ci,/data/home\
- -u kothand,beethoven -t y some_metric'
+ -u kothand,beethoven -t y iostat,openfiles'
     sys.exit(-1)
     # LIST_OF_METRICS = ['iostat', 'openfiles']
 
