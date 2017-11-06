@@ -2,7 +2,10 @@
 
 '''
 
-This program reports the process with the highest open files count, to Datadog. 
+This program reports the process with the highest open files count, to Datadog.
+
+It offers a debug mode in which a lot of information is displayed on stdout, including
+all the running processes, the FDs open per process, etc.
 
 Author: Seshadri Kothandaraman 3 Nov 2017
 
@@ -18,7 +21,8 @@ try:
     import sys
     import time
     import resource
-    from argparse import ArgumentParser, RawDescriptionHelpFormatter, REMAINDER
+    # from argparse import ArgumentParser, RawDescriptionHelpFormatter, REMAINDER
+    import argparse
     import textwrap
     import psutil
     import os
@@ -38,6 +42,11 @@ except ImportError:
 
 if 'check_output' not in dir(subprocess):
     def check_output(cmd_args, *args, **kwargs):
+
+        '''
+        This is a funtion to preserve compatibility with earlier versions
+        '''
+
         proc = subprocess.Popen(
             cmd_args, *args,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
@@ -55,18 +64,36 @@ if 'check_output' not in dir(subprocess):
 
 
 #########################################################
+#                Set debug options                      #
+#########################################################
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--debug', help='Turn on debug mode', action='store_true')
+args = parser.parse_args()
+
+
+SETDEBUG = 0
+
+if args.debug:
+    SETDEBUG = 1
+    print 'Running in debug mode'
+
+
+#########################################################
 #           UID and process check section               #
 #########################################################
 
 
-# Check if the program is running as root. If not, warn about incomplete data
+# Check if the program is running as root. If not, warn and exit
 
 if os.geteuid() != 0:
-    print 'You need to run this program as root' 
+    print 'You need to run this program as root'
     sys.exit(-1)
 
 
 # Check whether the Datadog agent is running
+# Warn and exit if not
 
 try:
 
@@ -95,14 +122,19 @@ if not os.path.ismount('/proc'):
 
 # Generate the list of unique users logged in to this system
 
-print 'Here are users logged in to this host: \n'
+# print 'Here are users logged in to this host: \n'
 # GETUSERSCMD = "who |awk '{print $1}' |sort -u"
 
 GETUSERSCMD = "ps -eo user |awk 'NR > 1'|sort -u"
 
 
 USERLIST = subprocess.check_output(GETUSERSCMD, shell=True)
-print USERLIST
+
+if SETDEBUG == 1:
+    print 'Here is the list of users:\n'
+    print '-------------'
+    print USERLIST
+    print '-------------'
 
 # Get the max per-process open file descriptors allowed on this host
 
@@ -112,29 +144,8 @@ print USERLIST
 
 MAXFDPERPROC = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
 
-print 'the MAXFDPERPROC is: {0}'.format(MAXFDPERPROC)
-
-# def post_metric(user):
-
-#         '''
-#         Get the PIDs of each user and the threads' usage
-
-#         '''
-
-#         # user = 'kothand' # This and the following line can be uncommented for debugging
-#         # print 'Getting the PIDS of user: {}'.format(self.user)
-
-#         print 'Getting the PIDS of user: {}'.format(user)
-
-#         ps_cmd = "ps --no-header -U " + user + " -u " + user + " u |awk '{print $2}'"
-#         list_of_pids = subprocess.check_output(ps_cmd, shell=True).split('\n')
-#         # print 'Here are the PIDs: '
-#         print list_of_pids
-
-
-# for user in USERLIST.splitlines():
-    
-#     post_metric(user)
+if SETDEBUG == 1:
+    print 'the MAXFDPERPROC is: {0}'.format(MAXFDPERPROC)
 
 RAWALLPIDS = []
 
@@ -146,9 +157,29 @@ for user in USERLIST.splitlines():
     ALLPIDS = filter(bool, RAWALLPIDS)
 
 
-print ALLPIDS
+if SETDEBUG == 1:
+
+    print 'Here is the list of PIDs on this host...:\n'
+    print ALLPIDS
+
+# Initialize variables
+
+HIGHESTFD = 0
+HIGHESTPID = 0
+
+# Loop through the current PIDs and determine the process that has the highest 
+# number of open FDs
 
 for pid in ALLPIDS:
-    
+
     COUNT = len(glob.glob('/proc/' + pid + '/fd/*'))
-    print 'The number of open files by {0} is {1}'.format(pid, COUNT)
+
+    if SETDEBUG == 1:
+        print 'The number of open files by {0} is {1}'.format(pid, COUNT)
+
+
+    if COUNT > HIGHESTFD:
+        HIGHESTFD = COUNT
+        HIGHESTPID = pid
+
+print 'The highest number of open files is {0} by pid: {1}'.format(HIGHESTFD, HIGHESTPID)
