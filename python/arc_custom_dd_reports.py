@@ -30,6 +30,11 @@ The script is organized as follows:
 6. While at times a class might not be needed (a function might serve the purpose),
    in order to maintain uniformity and help expandability, it is done so.
 
+Current list of metrics:
+
+  a. nfs io stats
+  b. open files per user
+
 '''
 
 # Common tasks
@@ -116,7 +121,7 @@ except IOError:
 #########################################################
 
 
-PARSER = ArgumentParser(prog='arg_parse.py', formatter_class=
+PARSER = ArgumentParser(prog='arc_custom_dd_reports.py', formatter_class=
                         RawDescriptionHelpFormatter, description=
                         textwrap.dedent('''An integrated extendable script to post custom metrics
                          to Datadog.\n
@@ -130,7 +135,7 @@ PARSER = ArgumentParser(prog='arg_parse.py', formatter_class=
 ##########################################################
 
 
-PARSER = ArgumentParser(prog='arg_parse.py', formatter_class=
+PARSER = ArgumentParser(prog='arc_custom_dd_reports.py', formatter_class=
                         RawDescriptionHelpFormatter, description=
                         textwrap.dedent('''An integrated extendable script to
 post custom metrics to Datadog.\n

@@ -20,6 +20,7 @@ try:
     import subprocess
     import sys
     import time
+    import datetime
     import resource
     # from argparse import ArgumentParser, RawDescriptionHelpFormatter, REMAINDER
     import argparse
@@ -27,7 +28,7 @@ try:
     import psutil
     import os
     import glob
-
+    from datadog import statsd
 
 # Exit if any module fails to load
 
@@ -119,23 +120,6 @@ if not os.path.ismount('/proc'):
     print 'The filesystem /proc is not mounted'
     sys.exit(-1)
 
-
-# Generate the list of unique users logged in to this system
-
-# print 'Here are users logged in to this host: \n'
-# GETUSERSCMD = "who |awk '{print $1}' |sort -u"
-
-GETUSERSCMD = "ps -eo user |awk 'NR > 1'|sort -u"
-
-
-USERLIST = subprocess.check_output(GETUSERSCMD, shell=True)
-
-if SETDEBUG == 1:
-    print 'Here is the list of users:\n'
-    print '-------------'
-    print USERLIST
-    print '-------------'
-
 # Get the max per-process open file descriptors allowed on this host
 
 
@@ -143,43 +127,75 @@ if SETDEBUG == 1:
 # Upon encountering this limit, fork(2) fails with the error EAGAIN.
 
 MAXFDPERPROC = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
+HIT90PC = int(0.9 * MAXFDPERPROC)
 
-if SETDEBUG == 1:
-    print 'the MAXFDPERPROC is: {0}'.format(MAXFDPERPROC)
+# Uncomment the following line for debugging with a lower threshold
 
-RAWALLPIDS = []
-
-for user in USERLIST.splitlines():
-    ps_cmd = "ps --no-header -U " + user + " -u " + user + " u |awk '{print $2}'"
-    list_of_pids = subprocess.check_output(ps_cmd, shell=True).split('\n')
-    RAWALLPIDS += list_of_pids
-    # The above list contains empty values. We use the bool filter to delete them
-    ALLPIDS = filter(bool, RAWALLPIDS)
+# HIT90PC = 15        
 
 
 if SETDEBUG == 1:
+    print 'The MAXFDPERPROC is: {0}'.format(MAXFDPERPROC)
+    print 'An alarm will be sent to Datadog when a thread consumes {0} FDs'.format(HIT90PC)
 
-    print 'Here is the list of PIDs on this host...:\n'
-    print ALLPIDS
+# Get the list of PIDs
 
-# Initialize variables
+global HIGHESTFD
+global HIGHESTPID
+global PID2UPLOAD
 
-HIGHESTFD = 0
-HIGHESTPID = 0
 
-# Loop through the current PIDs and determine the process that has the highest 
-# number of open FDs
+ALLPIDS = psutil.pids()
 
-for pid in ALLPIDS:
+if SETDEBUG == 1:
 
-    COUNT = len(glob.glob('/proc/' + pid + '/fd/*'))
+        print 'Here is the list of PIDs on this host...:\n'
+        print ALLPIDS
+
+def get_info():
+
+    HIGHESTFD = 0
+    HIGHESTPID = 0
+    PID2UPLOAD = 0
+
+
+    for pid in ALLPIDS:
+
+        COUNT = len(glob.glob('/proc/' + str(pid) + '/fd/*'))
+
+        if SETDEBUG == 1:
+            print 'The number of open files by {0} is {1}'.format(pid, COUNT)
+
+
+        if COUNT > HIGHESTFD:
+            HIGHESTFD = COUNT
+            HIGHESTPID = pid
+
+
+    if HIGHESTFD >= HIT90PC:
+
+        PID2UPLOAD = HIGHESTPID
 
     if SETDEBUG == 1:
-        print 'The number of open files by {0} is {1}'.format(pid, COUNT)
+        print 'The highest number of open files is {0} by pid: {1}'.format(HIGHESTFD, HIGHESTPID)
+        print 'Datadog will be uploaded with PID: {0}'. format(PID2UPLOAD)
 
 
-    if COUNT > HIGHESTFD:
-        HIGHESTFD = COUNT
-        HIGHESTPID = pid
+        # Loop every 10 seconds to prevent data being uploaded too rapidly.
 
-print 'The highest number of open files is {0} by pid: {1}'.format(HIGHESTFD, HIGHESTPID)
+
+    statsd.gauge('system.highestFDcount', PID2UPLOAD)
+
+while True:
+
+    get_info()
+
+    if SETDEBUG == 1:
+        print datetime.datetime.now()
+
+    time.sleep(10)
+
+
+
+
+
