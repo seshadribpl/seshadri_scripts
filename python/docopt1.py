@@ -1,22 +1,41 @@
 #!/usr/bin/env python
 
 '''
-Usage:
 
-  example command [<cmd_arg>]...
-  example --version
+Usage: 
+  dostuff.py listfile <path> 
+  dostuff.py changedir <path>
+  dostuff cat <path>
+  dostuff remove <path>
+
+# Arguments:
+#   listfile  list a file
+#   changedir change into a directory
+#   cat       print a file's contents
+#   remove    delete a file
+
+Examples:
+  dostuff.py listfile /etc/inittab
+  dostuff.py changedir /tmp
+  dostuff.py cat /etc/mtab
+  dostuff.py remove /etc/resolv.conf
 
 Options:
-  -h, --help	Show this message
-  -c, --chai	Drink tea
-  -v, --version	Print the version
+  -h, --help
+  -l FILE --listfile=FILE       list a file
+  -d DIR --changedir=DIR        change into a directory
+  -c FILE --cat=FILE            print a file's contents
+  -r FILE --remove=FILE         delete a file
+
 '''
 
 from docopt import docopt
-from pprint import pprint
+
 
 if __name__ == '__main__':
-	arguments = docopt(__doc__, version='FIXME')
-	pprint(arguments)
+    arguments = docopt(__doc__)
+    print(arguments)
+
+
 
 
