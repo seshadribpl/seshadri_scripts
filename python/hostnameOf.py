@@ -27,6 +27,7 @@ except:
     print status
 
 client = boto3.client("ec2")
+ec2 = boto3.client("ec2")
 # response = client.describe_instances()
 # print response
 
@@ -45,15 +46,26 @@ client = boto3.client("ec2")
 
 # for InstanceId in i-0801d6338d334db73:
 
-ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
+# ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
+# print ec2_regions
 
-for region in ec2_regions:
+response = ec2.describe_regions()['Regions']
+for region in response:
+    print region['RegionName']
+    
+
+
+def PrintRunningInstances(region):
+    
+
+
+# for region in ec2_regions:
   
-  instances = client.describe_instances(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
-  for instance in instances:
-    if instance.state["Name"] == "running":
-      instancename = ''
-      for tag in instance.tags:
-        if tag["Key"] == 'Name':
-            instancename = tag["Value"]
-      print (region, instance.key_name, instance.public_dns_name, instance.image_id, instance.instance_type, instancename)
+#   instances = client.describe_instances(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+#   for instance in instances:
+#     if instance.state["Name"] == "running":
+#       instancename = ''
+#       for tag in instance.tags:
+#         if tag["Key"] == 'Name':
+#             instancename = tag["Value"]
+#       print (region, instance.key_name, instance.public_dns_name, instance.image_id, instance.instance_type, instancename)
