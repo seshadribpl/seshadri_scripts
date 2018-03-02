@@ -47,6 +47,11 @@ ec2 = boto3.client('ec2')
 
 regions = [region['RegionName'] for region in ec2.describe_regions()['Regions']]
 
+# The above one-line is a short form of:
+# for region in ec2.describe_regions()['Regions']:
+#     regions = region['RegionName']
+    
+
 for name in regions:
     ec2 = boto3.client('ec2', region_name='{}'.format(name))
     print 'region is {}'.format(name)
