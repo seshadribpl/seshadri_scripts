@@ -8,44 +8,80 @@
 # Adjust the NUMPACKETS as per your requirement
 
 
-helpmsg ()
+usage="$(basename "$0") [-h] [-n NumPackets]
 
-{
-echo "Ex: Use -t 500 for capturing 500 packets"
-}
+where:
+
+  -h    show this help text
+  -n    set the number of packets to capture (default 5000)
+  -t    set the duration of capture (default 60 seconds)
+
+If you use both, -n and -t, the script will exit on hitting the
+condition that gets matched first.
+
+For example, on a typical server:
+
+$(basename "$0") -n 100000000 -t 5 will capture for 5 seconds
+
+whereas
+
+$(basename "$0") -n 100 -t 399999 will capture 100 packets
+
+"
+
+# Do some infra checks...
+# Check if wireshark is installed
+
+rpm -q wireshark --quiet
+RC=$?
+
+if [[ $RC -ne "0" ]]; then
+  echo "Wireshark not installed. Exiting ..."
+  exit 2
+fi
+
+# Check if running as root; exit if not
+# The script needs to run as root to access the capture interface
+
+if [[ $EUID -ne "0" ]]; then
+  echo "This script needs to be run as root. Exiting ..."
+  exit 3
+fi
 
 
-NUMPACKETS=50
+NUMPACKETS=5000
 PORT=2049
+TIME=60
 CAPTUREFILE=/tmp/nfs.$$
-## CAPTUREFILE=/tmp/nfs.1
 LOCALIP=$(hostname -I)
 
-while getopts ":ht:" opt ; do
+while getopts ":hn:t:" opt ; do
 
 case ${opt} in
 
-  h ) helpmsg
+  h ) echo "$usage"     # helpmsg
       exit 0
     ;;
 
-  t ) NUMPACKETS=${OPTARG}
-      echo "The value of NUMPACKETS is ${NUMPACKETS}"
+  n ) NUMPACKETS=${OPTARG}
+      echo "Capturing ${NUMPACKETS} packets"
+    ;;
+  t ) TIME=${OPTARG}
+      echo "Capturing packets for ${TIME} seconds"
     ;;
 
-  \? ) echo "Usage: cmd [-h] [-t]"
+  \? ) echo "Usage: cmd [-h] [-n] [-t]"
+    exit 4
     ;;
 
 esac
 
 done
 
-# The command "rm ..." is to be read and executed when the shell receives signals 1, 2, 3, 11, 15
-
-trap "rm $CAPTUREFILE" 1 2 3 11 15
 
 
-tshark -c $NUMPACKETS port $PORT > /tmp/nfs.$$
+tshark -c $NUMPACKETS -a duration:${TIME} port $PORT > $CAPTUREFILE
+
 
 # Remove the local ip address from the capture file
 # as it will always be at the top
@@ -72,3 +108,11 @@ END{
   close ("sort -k2,2nr | head")
 }' /$CAPTUREFILE | grep -v $LOCALIP
 
+# The command "rm ..." is to be read and executed when the shell receives signals 1, 2, 3, 11, 15
+
+trap "rm $CAPTUREFILE" 1 2 3 11 15
+echo "The capture file was $CAPTUREFILE"
+
+echo "Removing it..."
+# Comment out the following line for debugging
+rm -f $CAPTUREFILE
