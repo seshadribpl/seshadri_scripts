@@ -30,6 +30,10 @@ except:
 
 # Arguments check
 
+if len(sys.argv) < 2:
+    print "Need at least one InstanceId. Exiting ..."
+    sys.exit(-1)
+
 CMDARGS = sys.argv[1:]
 
 # print 'Here are the CMDARGS'
