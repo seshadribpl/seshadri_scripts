@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 
 '''A small script to find the hostname, given its InstanceId.
+The script can be extended to get various other information
 
 Author: Sesh Kothandaraman 2 Apr 2018
 
-Version 1.0
+Version 1.1
+
 '''
 import subprocess
-from collections import defaultdict
 import sys
 import boto3
 
-# First, a teeny snippet to make sure that our credentials are valid for at least 5 minutes
+# First, a teeny snippet to make sure that our credentials
+# are valid for at least 5 minutes
 # If not, run sts init
 
 try:
@@ -20,7 +22,7 @@ try:
     STATUS = subprocess.check_output(STS_CHECK, shell=True)
 
 
-except:
+except subprocess.CalledProcessError:
     print 'No valid credentials; renewing ...'
     STS_RENEW = 'sts init --role systems --force'
     subprocess.check_output(STS_RENEW, shell=True)
@@ -42,33 +44,20 @@ CMDARGS = sys.argv[1:]
 # Connect to EC2
 EC2 = boto3.resource('ec2')
 
-# Get information for all running instances
-# Some lines have been commented out now.
-# Will use for further development
 
-RUNNING_INSTANCES = EC2.instances.filter(Filters=[{
-    'Name': 'instance-state-name',
-    'Values': ['running']}])
-
-EC2INFO = defaultdict()
-for instance in RUNNING_INSTANCES:
-    for tag in instance.tags:
-        if 'Name'in tag['Key']:
-            name = tag['Value']
-    # Add instance info to a dictionary
-    EC2INFO[instance.id] = {
-        'Name': name,
-        # 'Type': instance.instance_type,
-        # 'State': instance.state['Name'],
-        # 'Private IP': instance.private_ip_address,
-        # 'Public IP': instance.public_ip_address,
-        # 'Launch Time': instance.launch_time
-        }
-
+def get_instance_name(instance_id):
+    """
+        Take the instance ID as a string
+        and return the hostname of the instance
+    """
+    # ec2 = boto3.resource('ec2')
+    ec2instance = EC2.Instance(instance_id)
+    instancename = ''
+    for tags in ec2instance.tags:
+        if tags["Key"] == 'Name':
+            instancename = tags["Value"]
+    return instancename
 
 for HOSTID in CMDARGS:
-    HOSTNAME = EC2INFO[HOSTID]
+    HOSTNAME = get_instance_name(HOSTID)
     print 'The hostname of {} is {}'.format(HOSTID, HOSTNAME)
-
-
-
