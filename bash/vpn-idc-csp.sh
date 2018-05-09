@@ -34,3 +34,4 @@ sleep 300
 # Send a confirmatory Email
 aws elb describe-instance-health --load-balancer-name vpn-idc-csp --query InstanceStates[].[InstanceId,State][] --output table|mail -s "vpn-idc-csp status" kothand@arcesium.com
 
+# this is a new line
