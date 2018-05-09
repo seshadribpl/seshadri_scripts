@@ -54,10 +54,10 @@ def get_instance_name(instance_id):
     ec2instance = EC2.Instance(instance_id)
     instancename = ''
     for tags in ec2instance.tags:
-        if tags["Key"] == 'Name':
+        if tags["Key"] == 'hostname':
             instancename = tags["Value"]
     return instancename
 
 for HOSTID in CMDARGS:
     HOSTNAME = get_instance_name(HOSTID)
-    print 'The hostname of {} is {}'.format(HOSTID, HOSTNAME)
+    print 'The hostname of {} is: {}'.format(HOSTID, HOSTNAME)
