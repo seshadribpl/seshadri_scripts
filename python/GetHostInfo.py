@@ -14,9 +14,36 @@ Version 1.0
 
 
 '''
+
+'''GetHostInfo.py
+Usage:
+    GetHostInfo.py [<Option> ...]
+
+Options:
+    -h, --help          Show this help
+    -n, --name          Print instance name
+    -t, --type          Print instance type
+
+
+
+'''
+
 import subprocess
 import sys
 import boto3
+import argparse
+parser = argparse.ArgumentParser()
+
+
+parser.add_argument("-i","--id",help="Instance ID (space-separated, at least one)",required=True,nargs='+',action="store", default=False, dest="id")
+parser.add_argument("-n","--name",help="Print instance name", action='store_true')
+parser.add_argument("-t","--type",help="Print instance type",action='store_true')
+
+
+
+args = parser.parse_args()
+
+# print args
 
 # First, a teeny snippet to make sure that our credentials
 # are valid for at least 5 minutes
@@ -42,11 +69,6 @@ if len(sys.argv) < 2:
     print "Need at least one InstanceId. Exiting ..."
     sys.exit(-1)
 
-CMDARGS = sys.argv[1:]
-
-# print 'Here are the CMDARGS'
-# print CMDARGS
-
 # Connect to EC2
 EC2 = boto3.resource('ec2')
 
@@ -62,7 +84,7 @@ def get_instance_name(instance_id):
     for tags in ec2instance.tags:
         if tags["Key"] == 'hostname':
             instancename = tags["Value"]
-    return instancename
+    print instancename
 
 def get_instance_type(instance_id):
     '''
@@ -73,12 +95,16 @@ def get_instance_type(instance_id):
     instancetype = ''
     for type in ec2instance.instance_type.splitlines():
         instancetype = type
-    return instancetype
+    print instancetype
 
+HOSTID = args.id
 
+for i in HOSTID:
+    print '------------------------------'
+    print 'Info for host {}'.format(i)
+    if args.name:
+        get_instance_name(i)
+    if args.type:
+        get_instance_type(i)
+    print '------------------------------'
 
-for HOSTID in CMDARGS:
-    HOSTNAME = get_instance_name(HOSTID)
-    print 'The hostname of {} is: {}'.format(HOSTID, HOSTNAME)
-    HOSTTYPE = get_instance_type(HOSTID)
-    print 'The instance type of {} is: {}'.format(HOSTID, HOSTTYPE)
