@@ -9,6 +9,8 @@ Author: Sesh Kothandaraman 9 May 2018
 Version 1.0
 
 %changelog
+* Thu 17 May 2018
+- Add option for private IP address
 * Wed 16 May 2018
 - Add options for name and type
 - Formatting and pylint suggestions
