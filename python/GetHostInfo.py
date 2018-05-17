@@ -9,41 +9,37 @@ Author: Sesh Kothandaraman 9 May 2018
 Version 1.0
 
 %changelog
-* Tue 9 May 2018 
+* Wed 16 May 2018
+- Add options for name and type
+- Formatting and pylint suggestions
+* Tue 9 May 2018
 - Initial commit
 
 
 '''
 
-'''GetHostInfo.py
-Usage:
-    GetHostInfo.py [<Option> ...]
-
-Options:
-    -h, --help          Show this help
-    -n, --name          Print instance name
-    -t, --type          Print instance type
-
-
-
-'''
 
 import subprocess
 import sys
-import boto3
 import argparse
-parser = argparse.ArgumentParser()
-
-
-parser.add_argument("-i","--id",help="Instance ID (space-separated, at least one)",required=True,nargs='+',action="store", default=False, dest="id")
-parser.add_argument("-n","--name",help="Print instance name", action='store_true')
-parser.add_argument("-t","--type",help="Print instance type",action='store_true')
+import boto3
 
 
 
-args = parser.parse_args()
+PARSER = argparse.ArgumentParser()
 
-# print args
+
+PARSER.add_argument("-i", "--id", help="Instance ID (space-separated, at least one)",
+                    required=True, nargs='+', action="store", default=False, dest="id")
+PARSER.add_argument("-n", "--name", help="Print instance name", action='store_true')
+PARSER.add_argument("-t", "--type", help="Print instance type", action='store_true')
+PARSER.add_argument("-I", "--privateip", help="Print private IP", action='store_true')
+
+
+
+ARGS = PARSER.parse_args()
+
+# print ARGS
 
 # First, a teeny snippet to make sure that our credentials
 # are valid for at least 5 minutes
@@ -93,18 +89,29 @@ def get_instance_type(instance_id):
     '''
     ec2instance = EC2.Instance(instance_id)
     instancetype = ''
-    for type in ec2instance.instance_type.splitlines():
-        instancetype = type
+    for configuration in ec2instance.instance_type.splitlines():
+        instancetype = configuration
     print instancetype
 
-HOSTID = args.id
+def get_private_ip(instance_id):
+    '''
+    Take the instance ID as a string
+    and return its private IP address.
+    '''
+    ec2instance = EC2.Instance(instance_id)
+    privateip = ec2instance.private_ip_address
+    print privateip
+
+
+HOSTID = ARGS.id
 
 for i in HOSTID:
     print '------------------------------'
     print 'Info for host {}'.format(i)
-    if args.name:
+    if ARGS.name:
         get_instance_name(i)
-    if args.type:
+    if ARGS.type:
         get_instance_type(i)
-    print '------------------------------'
-
+    if ARGS.privateip:
+        get_private_ip(i)
+print '------------------------------'
