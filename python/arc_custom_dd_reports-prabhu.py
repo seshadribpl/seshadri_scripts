@@ -64,7 +64,7 @@ try:
 
 except ImportError:
     raise 'ImportError One or more modules failed to load'
-    sys.exit(-2)
+    # sys.exit(-2)
 
 
 
@@ -73,6 +73,9 @@ except ImportError:
 
 if 'check_output' not in dir(subprocess):
     def check_output(cmd_args, *args, **kwargs):
+        '''
+        Provides compatibility with Python 2.6
+        '''
         proc = subprocess.Popen(
             cmd_args, *args,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
@@ -252,18 +255,19 @@ class NfsIostat:
     Instantiate methods for each mounted filesystem.
     '''
 
-    def __init__(self):
+    def __init__(self, nfs_partition):
 
         '''
         Initialize variables.
         We need only the name of the nfs partition to get metrics
         '''
 
-        pass
+        self.nfs_partition = nfs_partition
+        partition = self.nfs_partition
 
 
 
-    def get_nfs_readavg_exe(self, nfs_partition):
+    def get_nfs_readavg_exe(self):
 
         '''
         Some variable caveats to be noted:
@@ -274,16 +278,16 @@ class NfsIostat:
 
         '''
 
-        # self.nfs_partition = nfs_partition
+        
 
-        get_read_time_cmd = "nfsiostat " + nfs_partition + " |awk 'FNR == 7 {print $NF}'"
+        get_read_time_cmd = "nfsiostat " + partition + " |awk 'FNR == 7 {print $NF}'"
         read_latency = float(subprocess.check_output(get_read_time_cmd, shell=True))
 
         # Call Datadog's statsd module to push the metric to Datadog
 
-        statsd.gauge('system.read_latency.{}'.format(nfs_partition), read_latency)
+        statsd.gauge('system.read_latency.{}'.format(partition), read_latency)
 
-    def get_nfs_writeavg_exe(self, nfs_partition):
+    def get_nfs_writeavg_exe(self):
 
         '''
         Some variable caveats to be noted:
@@ -296,12 +300,12 @@ class NfsIostat:
 
 
 
-        get_write_time_cmd = "nfsiostat " + nfs_partition + " |awk 'FNR == 9 {print $NF}'"
+        get_write_time_cmd = "nfsiostat " + partition + " |awk 'FNR == 9 {print $NF}'"
         write_latency = float(subprocess.check_output(get_write_time_cmd, shell=True))
 
         # Call Datadog's statsd module to push the metric to Datadog
 
-        statsd.gauge('system.write_latency.{}'.format(nfs_partition), write_latency)
+        statsd.gauge('system.write_latency.{}'.format(partition), write_latency)
 
 
 ################################
@@ -460,10 +464,10 @@ while True:
 
     if 'iostat' in LIST_OF_METRICS:
 
-        for partition in NFS_LIST:
+        for part in NFS_LIST:
 
-            GET_NFSIOSTAT_STATS.get_nfs_readavg_exe(partition)
-            GET_NFSIOSTAT_STATS.get_nfs_writeavg_exe(partition)
+            GET_NFSIOSTAT_STATS.get_nfs_readavg_exe(part)
+            GET_NFSIOSTAT_STATS.get_nfs_writeavg_exe(part)
 
     if 'openfiles' in LIST_OF_METRICS:
 

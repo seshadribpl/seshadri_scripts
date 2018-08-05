@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+
+'''
+This script prints out all the instances
+in the region specified. They can be in any state
+(terminated/running/stopped)
+'''
+
+# Import modules
+
+import sys
+import boto3
+import argparse
+import subprocess
+
+
+
+# Argument parsing
+
+parser = argparse.ArgumentParser(description=('Executable to list all instances in a region'))
+parser.add_argument('-r', '--region', type=str, help='region name', default='us-east-1')
+parser.add_argument('-a', '--account', type=str, help='account name', default='prod')
+
+
+parameters = parser.parse_args()
+region_name = parameters.region
+account_name = parameters.account
+
+
+print '---------------------------------------------'
+print 'Getting instances in region: %s and account: %s' %(region_name, account_name)
+print '---------------------------------------------'
+
+
+# Run sts init. We can't rely on existing credentials as the region might be different
+
+STS_RENEW = 'sts init --role systems --force --region %s --account %s --quiet'
+subprocess.check_output(STS_RENEW %(region_name, account_name), shell=True)
+
+
+
+# Connect to EC2
+
+ec2 = boto3.client('ec2')
+response = ec2.describe_instances()
+# print response # uncomment for debugging
+
+
+try:
+
+    for reservation in response['Reservations']:
+        
+        for instance in reservation['Instances']:
+            
+            # print (instance['InstanceId'], instance['InstanceType']) # uncomment for debugging
+            
+            for tag in instance['Tags']:
+                
+                if tag['Key'] == 'hostname':
+                    
+                    print(instance['InstanceId'],tag['Value'], instance['State']['Name'])
+
+except:
+
+    print 'error'
+
+if '__name__' == '__main__':
+    main()
+    sys.exit(0)

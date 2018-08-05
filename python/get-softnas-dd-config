@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+# This script gets Datadog customizations from the Softnas hosts
+# Author: Seshadri Kothandaraman 19 Feb 2018
+
+
+set -e
+set -u
+
+host = $1
+
+SSH="ssh -o GlobalKnownHostsFile=/dev/null"
+
+derive () {
+    configfile=$1
+    python -c "print '.'.join('$host'.split('.ia55.net')[0].split('.')[::-1]) + '-'.join('$configfile'.split('/'))"
+}
+
+
+
+######################################
+for configfile in \
+        /etc/exports \
+        /etc/samba/smb.conf \
+        /etc/sysconfig/nfs \
+        /var/www/softnas/config/schedules.ini \
+        /var/www/softnas/config/snapshots.ini; do
+    filename=$(derive $configfile)
+    echo "  $configfile > $filename"
+    $SSH ec2-user@$host "sudo cat $configfile" > $filename
+    if [[ ${filename} =~ snapshots\.ini$ ]]; then
+        ./sort-ini ${filename}
+    fi
+done
+
+if [[ $host == "nfs2a.i.ia55.net" ]]; then
+    configfile=/etc/cron.d/arcmaintenance
+    $SSH ec2-user@$host "sudo cat $configfile" > etc-cron.d-arcmaintenance
+fi
+

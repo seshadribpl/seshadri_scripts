@@ -54,8 +54,9 @@ def CheckForMissingTag(region,tagname):
 
 
 for region_name in regions:
-    print 'Now checking region {}...'.format(region_name)
+    
     for tag_name in taglist:
+        print 'Now checking region: \"{}\" for missing tag name \"{}\"'.format(region_name, tag_name)
         CheckForMissingTag(region_name, tag_name)
 
 
